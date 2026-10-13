@@ -450,6 +450,15 @@ const Q = [
   { id: "permission", short: "Просить разрешения", text: "Просить разрешения на всё: сесть, заговорить, кончить", w: { power: .9 } },
   { id: "thanks",   short: "Благодарить за наказание", text: "Благодарить после каждого наказания: «спасибо, Господин»", w: { power: .7, words: .3 } },
   { id: "cnc",      short: "Игра в сопротивление", text: "Игра в сопротивление: ты вырываешься и говоришь «нет», а тебя всё равно берут. Всё обговорено заранее, стоп-слово работает", w: { power: 1, play: .5 } },
+  { id: "nextSteps", type: "multi", text: "Что сделаем дальше? Выбери, что хочется", opts: [
+      "Хочу, чтобы ты тоже прошёл этот тест",
+      "Сравнить наши ответы и найти совпадения",
+      "Колода карт с заданиями из моих «хочу»",
+      "Отсчёт до твоего возвращения с намёком каждый день",
+      "Вместе составить контракт: правила, обращения, наказания",
+      "Общий список «попробовать» с галочками, что уже было",
+      "Продолжение квиза: ещё глубже по тому, что я выбрала",
+      "Расписать нашу первую ночь после твоего возвращения по шагам"] },
   { id: "wish", type: "text", text: "Что ещё хочется осуществить? То, чего не было в вопросах" }
 ];
 
@@ -559,7 +568,7 @@ function el(html) { const t = document.createElement("template"); t.innerHTML = 
 const ICON = {
   blind: "blindfold", depriv: "blindfold", tied: "cuffs", pinned: "cuffs", rules: "cuffs", cnc: "rope", rope: "rope",
   spank: "belt", belt: "belt", marks: "belt", edging: "lock", denial: "lock", video: "camera", photos: "camera", film: "camera",
-  collar: "collar", knees: "collar", control: "collar", pet: "ears", wax: "wax", ice: "wax", clamps: "clamps", helpless: "gag", oralKnees: "collar", clothes: "camera", command: "lock", writing: "words", toy: "cuffs", training: "collar", latefine: "belt", rpHard: "play", slaps: "pain", oralHer: "words", oralHim: "words", contract: "contract", chastity: "lock", waiting: "blindfold", masturbOrder: "camera", spreader: "cuffs", overnight: "cuffs", tickle: "senses", cumOn: "words", deep: "collar", spit: "words", reverse: "crown", ride: "crown", worship: "crown", herOrders: "crown", tieHim: "crown", teaseDeny: "crown", remoteToy: "phone", marksPhoto: "camera", porn: "phone", fetish: "play", neckHand: "collar", greet: "collar", permission: "lock", thanks: "words", aftercare: "tender", address: "crown", wish: "words", scruff: "collar", jaw: "collar"
+  collar: "collar", knees: "collar", control: "collar", pet: "ears", wax: "wax", ice: "wax", clamps: "clamps", helpless: "gag", oralKnees: "collar", clothes: "camera", command: "lock", writing: "words", toy: "cuffs", training: "collar", latefine: "belt", rpHard: "play", slaps: "pain", oralHer: "words", oralHim: "words", contract: "contract", chastity: "lock", waiting: "blindfold", masturbOrder: "camera", spreader: "cuffs", overnight: "cuffs", tickle: "senses", cumOn: "words", deep: "collar", spit: "words", reverse: "crown", ride: "crown", worship: "crown", herOrders: "crown", tieHim: "crown", teaseDeny: "crown", remoteToy: "phone", marksPhoto: "camera", porn: "phone", fetish: "play", neckHand: "collar", greet: "collar", permission: "lock", thanks: "words", aftercare: "tender", address: "crown", wish: "words", nextSteps: "contract", scruff: "collar", jaw: "collar"
 };
 function plural(n, one, few, many) {
   const m10 = n % 10, m100 = n % 100;
@@ -744,8 +753,8 @@ function renderQ() {
     app.querySelectorAll(".opt").forEach(x => x.classList.toggle("on", x === b));
     if (q.type === "gate" && v === "stop") {
       // жёсткую часть пропустили: её ответы не учитываем, сразу к последнему вопросу
-      Q.slice(idx + 1).forEach(x => { if (x.type !== "text") { delete answers[x.id]; delete extra.star[x.id]; delete extra.level[x.id]; } });
-      setTimeout(() => { idx = Q.findIndex(x => x.type === "text"); renderQ(); }, 220);
+      Q.slice(idx + 1).forEach(x => { if (x.type !== "text" && x.id !== "nextSteps") { delete answers[x.id]; delete extra.star[x.id]; delete extra.level[x.id]; } });
+      setTimeout(() => { idx = Q.findIndex(x => x.id === "nextSteps"); renderQ(); }, 220);
       return;
     }
     if (!q.type && Number(v) === 4 && asksLevel(q)) { setTimeout(() => renderLevel(q), 220); return; }
@@ -863,6 +872,7 @@ function renderResult() {
   const after = answers.aftercare || [];
   const addr = answers.address && answers.address !== "Ещё не знаю" ? answers.address : "";
   const wish = answers.wish || "";
+  const nextSteps = answers.nextSteps || [];
   const punish = shuffle(PUNISH.filter(x => answers[x.q] >= 3)).slice(0, 8);
   const maybe = scaleQs.filter(q => answers[q.id] === 3 || answers[q.id] === 2).map(q => q.short);
   const no = scaleQs.filter(q => answers[q.id] === 0).map(q => q.short);
@@ -949,6 +959,12 @@ function renderResult() {
         </div>
       </div>
 
+      ${nextSteps.length ? `<div class="callout">
+        <span class="eyebrow">Что дальше</span>
+        <h3>Ты выбрала, что сделаем потом</h3>
+        <div class="chips">${nextSteps.map(x => `<span class="chip">${esc(x)}</span>`).join("")}</div>
+      </div>` : ""}
+
       ${wish ? `<div class="callout">
         <span class="eyebrow">Что ещё хочется осуществить</span>
         <p style="font-family:var(--display);font-style:italic;font-size:22px;line-height:1.3">«${esc(wish)}»</p>
@@ -975,7 +991,8 @@ function renderResult() {
     starred.length ? `Стесняюсь сказать, начни первым: ${starred.join(", ")}` : "",
     addr ? `В игре обращаюсь: ${addr}` : "",
     after.length ? `После мне нужно: ${after.join(", ")}` : "",
-    wish ? `Ещё хочу: ${wish}` : ""
+    wish ? `Ещё хочу: ${wish}` : "",
+    nextSteps.length ? `Что сделаем дальше: ${nextSteps.join("; ")}` : ""
   ].filter(Boolean).join("\n");
 
   const spin = document.getElementById("spin");
