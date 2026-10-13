@@ -131,12 +131,15 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
 .ill { display: block; overflow: visible; }
 .ill use { filter: drop-shadow(0 0 14px rgba(240,127,147,.45)); }
 .hero-art { position: relative; height: 190px; display: grid; place-items: center; }
-.hero-art .ill { width: min(300px, 80%); height: auto; animation: breathe 4.5s ease-in-out infinite; }
+.hero-art .main { position: relative; width: min(260px, 66%); height: auto; animation: breathe 4.5s ease-in-out infinite; }
+.hero-art .side { position: absolute; width: min(130px, 34%); height: auto; opacity: .9; }
+.hero-art .side-l { left: 0; bottom: 0; transform: rotate(-18deg); }
+.hero-art .side-r { right: 0; top: 4px; transform: rotate(14deg); }
 .hero-art .glow { position: absolute; inset: 10% 15%; border-radius: 50%; background: radial-gradient(closest-side, rgba(240,127,147,.35), transparent); filter: blur(10px); }
 .hero-art .float { position: absolute; width: 22px; height: 22px; opacity: .8; animation: rise 6s ease-in-out infinite; }
-.hero-art .float:nth-of-type(2) { left: 12%; top: 58%; }
-.hero-art .float:nth-of-type(3) { right: 14%; top: 22%; width: 16px; height: 16px; animation-delay: -2s; }
-.hero-art .float:nth-of-type(4) { right: 26%; bottom: 4%; width: 12px; height: 12px; animation-delay: -4s; }
+.hero-art .f1 { left: 30%; top: 6%; }
+.hero-art .f2 { right: 14%; top: 22%; width: 16px; height: 16px; animation-delay: -2s; }
+.hero-art .f3 { right: 30%; bottom: 4%; width: 12px; height: 12px; animation-delay: -4s; }
 @keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
 @keyframes rise { 0%,100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(-14px); opacity: 1; } }
 .q-art { width: 84px; height: 60px; }
@@ -202,6 +205,82 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
       <path fill="url(#hot)" d="M30 56 C10 42 6 28 14 20 C21 13 28 17 30 23 C32 17 39 13 46 20 C54 28 50 42 30 56 Z"/>
       <path fill="url(#hot)" d="M48 32 H112 V39 H48 Z M94 39 H101 V52 H94 Z M104 39 H112 V48 H104 Z"/>
       <circle cx="30" cy="31" r="5" fill="#3a2230"/>
+    </symbol>
+    <!-- наручники -->
+    <symbol id="i-cuffs" viewBox="0 0 120 70">
+      <circle cx="32" cy="42" r="19" fill="none" stroke="url(#hot)" stroke-width="7"/>
+      <circle cx="88" cy="42" r="19" fill="none" stroke="url(#hot)" stroke-width="7"/>
+      <rect x="44" y="18" width="8" height="10" rx="2" fill="#f2b46d"/>
+      <rect x="68" y="18" width="8" height="10" rx="2" fill="#f2b46d"/>
+      <g fill="none" stroke="#f2b46d" stroke-width="2.5"><ellipse cx="55" cy="18" rx="5" ry="3"/><ellipse cx="60" cy="14" rx="3" ry="5"/><ellipse cx="65" cy="18" rx="5" ry="3"/></g>
+      <path fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="2" d="M18 34 C22 28 28 25 34 25 M74 34 C78 28 84 25 90 25"/>
+    </symbol>
+    <!-- ошейник с поводком -->
+    <symbol id="i-collar" viewBox="0 0 120 70">
+      <ellipse cx="48" cy="28" rx="38" ry="15" fill="none" stroke="url(#hot)" stroke-width="9"/>
+      <g fill="#f2b46d"><circle cx="18" cy="35" r="2.6"/><circle cx="31" cy="41" r="2.6"/><circle cx="65" cy="41" r="2.6"/><circle cx="78" cy="35" r="2.6"/></g>
+      <rect x="40" y="37" width="16" height="9" rx="2" fill="#3a2230" stroke="#f2b46d" stroke-width="2"/>
+      <circle cx="48" cy="53" r="7" fill="none" stroke="#f2b46d" stroke-width="3"/>
+      <path fill="none" stroke="url(#hot)" stroke-width="3.5" stroke-linecap="round" d="M48 60 C62 72 92 68 110 44 C114 38 118 34 116 28"/>
+    </symbol>
+    <!-- верёвка -->
+    <symbol id="i-rope" viewBox="0 0 120 70">
+      <path fill="none" stroke="url(#hot)" stroke-width="7" d="M18 36 C18 12 60 14 60 36 C60 58 102 60 102 36 C102 12 60 14 60 36 C60 58 18 60 18 36 Z"/>
+      <path fill="none" stroke="#5a1628" stroke-opacity=".55" stroke-width="7" stroke-dasharray="1.5 5" d="M18 36 C18 12 60 14 60 36 C60 58 102 60 102 36 C102 12 60 14 60 36 C60 58 18 60 18 36 Z"/>
+      <path fill="none" stroke="url(#hot)" stroke-width="6" stroke-linecap="round" d="M60 36 C66 48 70 60 64 68 M60 36 C54 48 52 58 58 68"/>
+    </symbol>
+    <!-- ремень -->
+    <symbol id="i-belt" viewBox="0 0 120 70">
+      <path fill="none" stroke="url(#hot)" stroke-width="12" stroke-linecap="round" d="M8 56 C30 30 66 24 96 34"/>
+      <g fill="#3a2230"><circle cx="30" cy="40" r="2"/><circle cx="42" cy="34" r="2"/><circle cx="54" cy="30" r="2"/><circle cx="66" cy="29" r="2"/></g>
+      <rect x="92" y="20" width="22" height="28" rx="4" fill="none" stroke="#f2b46d" stroke-width="3.5"/>
+      <path stroke="#f2b46d" stroke-width="3" d="M93 34 H112"/>
+    </symbol>
+    <!-- кляп -->
+    <symbol id="i-gag" viewBox="0 0 120 70">
+      <path fill="none" stroke="url(#hot)" stroke-width="7" stroke-linecap="round" d="M4 30 C30 40 90 40 116 30"/>
+      <rect x="12" y="27" width="12" height="12" rx="2" fill="none" stroke="#f2b46d" stroke-width="2.5"/>
+      <circle cx="60" cy="38" r="17" fill="url(#hot)"/>
+      <ellipse cx="54" cy="31" rx="6" ry="4" fill="#fff" opacity=".4"/>
+    </symbol>
+    <!-- замок -->
+    <symbol id="i-lock" viewBox="0 0 120 70">
+      <path fill="none" stroke="#f2b46d" stroke-width="6" d="M44 32 V20 C44 4 76 4 76 20 V32"/>
+      <rect x="34" y="30" width="52" height="38" rx="7" fill="url(#hot)"/>
+      <path fill="#3a2230" d="M60 60 C51 54 49 48 52 44 C55 41 59 42 60 45 C61 42 65 41 68 44 C71 48 69 54 60 60 Z"/>
+    </symbol>
+    <!-- камера -->
+    <symbol id="i-camera" viewBox="0 0 120 70">
+      <rect x="14" y="16" width="66" height="42" rx="7" fill="url(#hot)"/>
+      <path fill="url(#hot)" d="M82 30 L108 16 V58 L82 44 Z"/>
+      <circle cx="28" cy="28" r="5" fill="#fff"/><circle cx="28" cy="28" r="2.5" fill="#e0233f"/>
+      <text x="38" y="32" font-family="Manrope, sans-serif" font-size="10" font-weight="700" fill="#fff">REC</text>
+    </symbol>
+    <!-- воск -->
+    <symbol id="i-wax" viewBox="0 0 120 70">
+      <g transform="rotate(-35 50 34)">
+        <rect x="40" y="18" width="18" height="40" rx="2" fill="url(#hot)"/>
+        <path fill="url(#flame)" d="M49 2 C55 9 56 14 49 18 C42 14 43 9 49 2 Z"/>
+      </g>
+      <g fill="#ff8fa3"><path d="M84 30 C88 36 88 40 84 40 C80 40 80 36 84 30 Z"/><path d="M94 44 C98 50 98 54 94 54 C90 54 90 50 94 44 Z"/><path d="M84 56 C87 61 87 64 84 64 C81 64 81 61 84 56 Z"/></g>
+    </symbol>
+    <!-- зажимы -->
+    <symbol id="i-clamps" viewBox="0 0 120 70">
+      <path fill="none" stroke="url(#hot)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" d="M14 10 L28 40 L42 10 M78 10 L92 40 L106 10"/>
+      <circle cx="28" cy="42" r="5" fill="#f2b46d"/><circle cx="92" cy="42" r="5" fill="#f2b46d"/>
+      <path fill="none" stroke="#f2b46d" stroke-width="3" stroke-dasharray="4 3" d="M28 46 C46 70 74 70 92 46"/>
+    </symbol>
+    <!-- повязка -->
+    <symbol id="i-blindfold" viewBox="0 0 120 70">
+      <path fill="url(#hot)" d="M6 26 C34 20 86 20 114 26 L114 42 C86 36 34 36 6 42 Z"/>
+      <path fill="none" stroke="#5a1628" stroke-width="1.5" opacity=".5" d="M6 34 C34 28 86 28 114 34"/>
+      <path fill="url(#hot)" d="M110 34 C118 44 120 56 112 66 L106 62 C112 54 110 44 104 38 Z M110 34 C116 42 104 54 96 62 L92 58 C100 50 106 42 104 36 Z"/>
+    </symbol>
+    <!-- ушки -->
+    <symbol id="i-ears" viewBox="0 0 120 70">
+      <path fill="none" stroke="url(#hot)" stroke-width="5" stroke-linecap="round" d="M16 64 C26 22 94 22 104 64"/>
+      <path fill="url(#hot)" d="M30 38 L36 4 L56 26 Z M90 38 L84 4 L64 26 Z"/>
+      <path fill="#3a2230" d="M36 30 L38 14 L48 26 Z M84 30 L82 14 L72 26 Z"/>
     </symbol>
     <!-- флоггер -->
     <symbol id="i-pain" viewBox="0 0 120 70">
@@ -362,6 +441,13 @@ let answers = {};
 let idx = -1;
 
 function el(html) { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content; }
+// картинка по вопросу; если своей нет, берётся картинка шкалы
+const ICON = {
+  blind: "blindfold", depriv: "blindfold", tied: "cuffs", pinned: "cuffs", rules: "cuffs", cnc: "rope", rope: "rope",
+  spank: "belt", belt: "belt", marks: "belt", edging: "lock", denial: "lock", video: "camera", photos: "camera", film: "camera",
+  collar: "collar", knees: "collar", control: "collar", pet: "ears", wax: "wax", ice: "wax", clamps: "clamps", helpless: "gag"
+};
+function dimIcon(d) { return d === "power" ? "collar" : d; }
 function art(id, cls) { return `<svg class="ill ${cls}" viewBox="0 0 120 70" aria-hidden="true"><use href="#i-${id}"/></svg>`; }
 function archName(top, axis) {
   if (top !== "power") return DIMS[top].arch;
@@ -377,10 +463,12 @@ function renderIntro() {
     <section class="stack-lg fade">
       <div class="hero-art">
         <div class="glow"></div>
-        ${art("words", "")}
-        <svg class="ill float" viewBox="0 0 24 22" aria-hidden="true"><use href="#i-heart"/></svg>
-        <svg class="ill float" viewBox="0 0 24 22" aria-hidden="true"><use href="#i-heart"/></svg>
-        <svg class="ill float" viewBox="0 0 24 22" aria-hidden="true"><use href="#i-heart"/></svg>
+        ${art("cuffs", "side side-l")}
+        ${art("pain", "side side-r")}
+        ${art("words", "main")}
+        <svg class="ill float f1" viewBox="0 0 24 22" aria-hidden="true"><use href="#i-heart"/></svg>
+        <svg class="ill float f2" viewBox="0 0 24 22" aria-hidden="true"><use href="#i-heart"/></svg>
+        <svg class="ill float f3" viewBox="0 0 24 22" aria-hidden="true"><use href="#i-heart"/></svg>
       </div>
       <div class="stack">
         <span class="eyebrow">${NAME}, это для тебя</span>
@@ -429,7 +517,7 @@ function renderQ() {
         <div class="progress"><i style="width:${pct}%"></i></div>
       </div>
       <div class="stack fade">
-        ${art(q.type === "gate" ? "pain" : mainDim(q.type === "pick" ? q.a.w : q.w), "q-art")}
+        ${art(q.type === "gate" ? "cuffs" : ICON[q.id] || dimIcon(mainDim(q.type === "pick" ? q.a.w : q.w)), "q-art")}
         <span class="eyebrow">${q.type === "gate" ? "Жёсткая часть" : q.type === "pick" ? "Это или то" : "Насколько тебе это интересно?"}</span>
         <p class="qtext">${q.type === "gate" ? "Дальше вещи пожёстче: ошейник, ремень, верёвки, грязные слова. Продолжаем?" : esc(q.text)}</p>
       </div>
@@ -494,7 +582,7 @@ function renderResult() {
   const now = pickIdeas(pct, true, 4);
   const later = pickIdeas(pct, false, 5);
   const ideas = [...now, ...later];
-  const card = i => `<div class="idea"><div class="idea-head">${art(i.dim, "")}<div><span class="tag">${DIMS[i.dim].name}</span><h3>${i.t}</h3></div></div><p>${i.d}</p></div>`;
+  const card = i => `<div class="idea"><div class="idea-head">${art(ICON[i.q[0]] || dimIcon(i.dim), "")}<div><span class="tag">${DIMS[i.dim].name}</span><h3>${i.t}</h3></div></div><p>${i.d}</p></div>`;
   const scaleQs = Q.filter(q => !q.type);
   const yes = scaleQs.filter(q => answers[q.id] === 4).map(q => q.short);
   const maybe = scaleQs.filter(q => answers[q.id] === 3 || answers[q.id] === 2).map(q => q.short);
@@ -505,7 +593,7 @@ function renderResult() {
   app.replaceChildren(el(`
     <section class="stack-lg fade">
       <div class="hero-card stack">
-        ${art(top, "arch-art")}
+        ${art(dimIcon(top), "arch-art")}
         <span class="eyebrow">${NAME}, твой тип</span>
         <div class="arch">${archName(top, axis)}</div>
         <p>${DIMS[top].about}</p>
