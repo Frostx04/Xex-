@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Карта желаний</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow candle-lit column; one question at a time, result reads like a personal card. */
+:root {
+  --bg: #170d14;
+  --surface: #23141e;
+  --surface-2: #2e1a27;
+  --line: #43293a;
+  --fg: #f4e7ec;
+  --muted: #b596a6;
+  --accent: #f07f93;
+  --amber: #f2b46d;
+  --no: #8c6a7c;
+  --display: "Cormorant Garamond", "Georgia", "Times New Roman", serif;
+  --body: "Manrope", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgba(240,127,147,.16), transparent 60%),
+    radial-gradient(80% 40% at 100% 100%, rgba(242,180,109,.08), transparent 70%),
+    var(--bg);
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.wrap { max-width: 620px; margin: 0 auto; padding-inline: 20px; padding-block: 36px 56px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.1; }
+h1 { font-size: clamp(44px, 11vw, 72px); font-style: italic; letter-spacing: -.01em; }
+h2 { font-size: clamp(30px, 7vw, 42px); font-style: italic; }
+h3 { font-size: 24px; }
+p { margin: 0; }
+.eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.lead { color: var(--muted); font-size: 17px; max-width: 46ch; }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.stack-lg { display: flex; flex-direction: column; gap: 28px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+
+.btn {
+  border: 0; border-radius: 999px; padding: 15px 28px; font-weight: 700; font-size: 16px;
+  background: linear-gradient(100deg, var(--accent), var(--amber)); color: #2a0f1b;
+  box-shadow: 0 8px 30px rgba(240,127,147,.25);
+  transition: transform .15s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn-ghost { background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-weight: 600; color: var(--fg); }
+.btn-ghost:hover { border-color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+/* intro */
+.facts { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--muted); font-size: 14px; }
+.facts b { color: var(--fg); font-weight: 600; }
+.note { font-size: 13px; color: var(--muted); border-left: 2px solid var(--line); padding-left: 12px; }
+
+/* quiz */
+.progress { height: 4px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+.progress > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--amber)); transition: width .35s ease; }
+.qhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.counter { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); }
+.qtext { font-family: var(--display); font-size: clamp(28px, 6.4vw, 38px); font-weight: 600; line-height: 1.15; text-wrap: balance; min-height: 2.4em; }
+.qhint { color: var(--muted); font-size: 15px; }
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt {
+  display: flex; align-items: center; gap: 14px; text-align: left;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 14px 16px; transition: border-color .15s, background .15s, transform .15s;
+}
+.opt:hover { border-color: var(--muted); }
+.opt.on { border-color: var(--accent); background: var(--surface-2); }
+.dots { display: flex; gap: 4px; flex: none; }
+.dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.dots i.f { background: var(--accent); }
+.opt .lbl { font-weight: 600; }
+.opt .sub { color: var(--muted); font-size: 13px; }
+.pick { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pick .opt { flex-direction: column; align-items: flex-start; justify-content: center; min-height: 120px; padding: 18px; }
+.pick .opt .lbl { font-family: var(--display); font-size: 24px; font-style: italic; line-height: 1.15; }
+.or { text-align: center; font-family: var(--display); font-style: italic; color: var(--muted); font-size: 18px; margin-top: -4px; }
+.back { background: none; border: 0; color: var(--muted); padding: 6px 0; font-size: 14px; }
+.back:hover { color: var(--fg); }
+.back[disabled] { opacity: .35; cursor: default; }
+.fade { animation: fade .3s ease both; }
+@keyframes fade { from { opacity: .2; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* result */
+.hero-card {
+  background: linear-gradient(160deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--line); border-radius: 22px; padding: 28px 24px;
+}
+.hero-card .arch { font-family: var(--display); font-style: italic; font-size: clamp(40px, 10vw, 58px); line-height: 1; margin-block: 6px 12px;
+  background: linear-gradient(100deg, var(--accent), var(--amber)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.bars { display: flex; flex-direction: column; gap: 14px; }
+.bar { display: grid; grid-template-columns: 9.5em 1fr 3em; gap: 12px; align-items: center; font-size: 15px; }
+.bar .track { height: 8px; background: var(--surface-2); border-radius: 8px; overflow: hidden; }
+.bar .track i { display: block; height: 100%; border-radius: 8px; background: linear-gradient(90deg, var(--accent), var(--amber)); }
+.bar .pct { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; }
+.axis { display: flex; flex-direction: column; gap: 8px; }
+.axis .ends { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.axis .line { position: relative; height: 2px; background: var(--line); margin-block: 10px; }
+.axis .line b { position: absolute; top: 50%; width: 18px; height: 18px; border-radius: 50%; transform: translate(-50%,-50%);
+  background: var(--amber); box-shadow: 0 0 0 6px rgba(242,180,109,.18); }
+.ideas { display: flex; flex-direction: column; gap: 12px; }
+.idea { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 6px; }
+.idea .tag { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--amber); font-weight: 700; }
+.idea p { color: var(--muted); font-size: 15px; }
+.lists { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+.lists > div { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.lists h4 { margin: 0 0 8px; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; }
+.lists ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.lists .yes h4 { color: var(--accent); }
+.lists .maybe h4 { color: var(--amber); }
+.lists .no h4 { color: var(--no); }
+.lists .empty { color: var(--muted); font-style: italic; }
+.copied { font-size: 13px; color: var(--amber); }
+.sep { height: 1px; background: var(--line); border: 0; margin: 0; }
+@media (max-width: 560px) {
+  .lists { grid-template-columns: 1fr; }
+  .bar { grid-template-columns: 7.5em 1fr 2.6em; font-size: 14px; }
+  .pick { grid-template-columns: 1fr; }
+  .pick .opt { min-height: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<main class="wrap" id="app"></main>
+
+<script>
+const DIMS = {
+  tender: { name: "Нежность",     arch: "Медленный огонь",   about: "Тебя заводит не скорость, а внимание. Долго, близко, со вкусом: когда весь вечер про вас двоих и никто никуда не спешит." },
+  senses: { name: "Ощущения",     arch: "Исследовательница", about: "Ты чувствуешь кожей. Контрасты, прикосновения, неожиданность: тебе интересно, как одно и то же может ощущаться совсем по-новому." },
+  power:  { name: "Власть",       arch: "Игра в доверие",    about: "Тебя цепляет динамика: кто ведёт, кто отдаётся. Это не про жёсткость, а про доверие и напряжение между вами." },
+  words:  { name: "Слова",        arch: "Шёпот",             about: "Для тебя желание начинается в голове. Фразы на ушко, переписка днём, фантазии вслух разжигают сильнее, чем что-либо ещё." },
+  play:   { name: "Игра",         arch: "Актриса",           about: "Ты любишь образы, правила и сюжет. Быть кем-то другим на один вечер для тебя не странно, а очень весело." },
+  adv:    { name: "Приключения",  arch: "Авантюристка",      about: "Рутина не про тебя. Новое место, спонтанность, немного риска: всё, что заставляет сердце биться чаще." }
+};
+
+const SCALE = [
+  { v: 0, l: "Точно нет",  s: "Не моё, не хочу" },
+  { v: 1, l: "Скорее нет", s: "Сомневаюсь" },
+  { v: 2, l: "Не знаю",    s: "Не думала об этом" },
+  { v: 3, l: "Интересно",  s: "Можно попробовать" },
+  { v: 4, l: "Очень хочу", s: "Да, да, да" }
+];
+
+const Q = [
+  { id: "slow",     short: "Долгая прелюдия",      text: "Долгая прелюдия, когда никто никуда не торопится", w: { tender: 1 } },
+  { id: "massage",  short: "Массаж с маслом",      text: "Массаж с тёплым маслом, который плавно перетекает в большее", w: { tender: .6, senses: .6 } },
+  { id: "p1", type: "pick", text: "Что звучит заманчивее?",
+    a: { l: "Свечи, музыка и медленно", w: { tender: 1 } },
+    b: { l: "Сорвать одежду прямо в прихожей", w: { adv: 1, power: .4 } } },
+  { id: "blind",    short: "Повязка на глаза",     text: "Повязка на глаза: ты не видишь, что будет дальше", w: { senses: 1, power: .4 } },
+  { id: "dirty",    short: "Слова на ушко",        text: "Откровенные слова на ушко прямо в процессе", w: { words: 1 } },
+  { id: "control",  short: "Отдать контроль",      text: "Партнёр берёт всё под контроль и говорит, что тебе делать", w: { power: 1 } },
+  { id: "lingerie", short: "Образ для вечера",     text: "Красивое бельё или целый образ специально для вечера", w: { play: .7, tender: .3 } },
+  { id: "newplace", short: "Не в спальне",         text: "Не в спальне: душ, кухня, балкон, машина", w: { adv: 1 } },
+  { id: "ice",      short: "Лёд и тепло",          text: "Контрасты: кубик льда, тёплое дыхание, капля тёплого масла", w: { senses: 1 } },
+  { id: "p2", type: "pick", text: "Что тебе ближе?",
+    a: { l: "Чтобы меня вели", w: { power: .7 }, axis: -2 },
+    b: { l: "Вести самой",     w: { power: .7 }, axis: 2 } },
+  { id: "sexting",  short: "Переписка днём",       text: "Переписка с намёками весь день, чтобы к вечеру уже горело", w: { words: .8, adv: .3 } },
+  { id: "roleplay", short: "Ролевая игра",         text: "Ролевая игра: незнакомцы в баре, строгий начальник, случайная попутчица", w: { play: 1 } },
+  { id: "tied",     short: "Связанные руки",       text: "Лёгкая фиксация рук шёлковым шарфом или галстуком", w: { power: 1, senses: .3 } },
+  { id: "fantasy",  short: "Фантазии вслух",       text: "Рассказать друг другу свои фантазии, честно и вслух", w: { words: 1 } },
+  { id: "toys",     short: "Игрушки",              text: "Игрушки для пары", w: { play: .6, senses: .6 } },
+  { id: "hotel",    short: "Ночь в отеле",         text: "Спонтанная ночь в отеле, просто чтобы сменить обстановку", w: { adv: .8, tender: .3 } },
+  { id: "lead",     short: "Быть главной",         text: "Ты главная: решаешь, что, как и когда", w: { power: 1 } },
+  { id: "p3", type: "pick", text: "Свет или темнота?",
+    a: { l: "Свет. Хочу видеть всё", w: { senses: .5, adv: .4 } },
+    b: { l: "Полумрак и ощущения", w: { senses: .7, tender: .3 } } },
+  { id: "mirror",   short: "Зеркало",              text: "Зеркало, чтобы видеть вас со стороны", w: { senses: .6, adv: .5 } },
+  { id: "games",    short: "Игры с заданиями",     text: "Игра с правилами: кубики, карты с заданиями, фанты на раздевание", w: { play: 1 } },
+  { id: "quickie",  short: "Быстро и внезапно",    text: "Быстро и неожиданно, буквально десять минут", w: { adv: 1 } },
+  { id: "morning",  short: "Сонное утро",          text: "Утро, вы оба ещё полусонные, без лишних слов", w: { tender: 1 } },
+  { id: "rough",    short: "Больше напора",        text: "Чуть больше страсти и напора, чем обычно", w: { power: .7, adv: .4 } }
+];
+
+const NAME = "Дара";
+
+// remote: можно сделать, пока мы далеко друг от друга
+const IDEAS = [
+  { remote: true, dim: "tender", q: ["slow"],     t: "Видеосвидание",            d: "Один и тот же вечер по обе стороны экрана: свечи, бокал, никакой спешки. Сначала просто разговор, а дальше как пойдёт." },
+  { remote: true, dim: "senses", q: ["blind"],    t: "Повязка по видеосвязи",    d: "Ты в повязке, я по голосу говорю, где и как коснуться. Ты не видишь меня, только слышишь, и от этого всё ощущается сильнее." },
+  { remote: true, dim: "power",  q: ["control"],  t: "Задание на день",          d: "Утром ты получаешь от меня задание: что надеть, что прислать, о чём думать. Вечером отчёт. Отказаться можно в любой момент." },
+  { remote: true, dim: "power",  q: ["lead"],     t: "Ты командуешь",            d: "Вечер по видеосвязи, где решаешь только ты: что мне делать, когда можно и когда нельзя. Посмотрим, сколько я продержусь." },
+  { remote: true, dim: "words",  q: ["sexting"],  t: "Тизеры по расписанию",     d: "Весь день по одному сообщению каждые пару часов: сначала намёк, потом смелее. К вечеру будет очень жарко, даже на расстоянии." },
+  { remote: true, dim: "words",  q: ["fantasy"],  t: "История по главам",        d: "Пишем одну фантазию вдвоём, по сообщению по очереди. Каждый может повернуть сюжет куда хочет. Потом претворим её в жизнь при встрече." },
+  { remote: true, dim: "words",  q: ["dirty"],    t: "Голосовое перед сном",     d: "Запиши голосовое о том, что бы ты сделала, будь я сейчас рядом. Шёпотом. Я отвечу тем же." },
+  { remote: true, dim: "play",   q: ["lingerie"], t: "Фото-тизер",               d: "Новый образ, но на фото видна только деталь. Целиком я увижу его только при встрече." },
+  { remote: true, dim: "play",   q: ["games"],    t: "Правда или действие",      d: "Видеозвонок, по очереди: вопрос или задание. С каждым кругом чуть смелее. Пропустить можно, но один раз." },
+  { remote: true, dim: "adv",    q: ["quickie"],  t: "Внезапное сообщение",      d: "Посреди обычного дня одно откровенное сообщение без предупреждения. Неожиданность работает даже через экран." },
+
+  { dim: "tender", q: ["slow"],          t: "Вечер без финиша",         d: "Правило на один вечер: целый час только поцелуи и прикосновения, «главное» под запретом. Обычно правило никто не выдерживает, и в этом весь смысл." },
+  { dim: "tender", q: ["massage"],       t: "Массаж-эстафета",          d: "Свечи, тёплое масло, по 20 минут друг другу. Кто первым не выдержит и перейдёт к большему, тот проиграл желание." },
+  { dim: "tender", q: ["morning"],       t: "Утро без будильника",      d: "Выходной, телефоны в другой комнате, завтрак подождёт. Медленное сонное утро, когда никто никуда не спешит." },
+  { dim: "senses", q: ["blind", "ice"],  t: "Угадайка в повязке",       d: "Ты в повязке, а тебя касаются разными вещами: перо, шёлк, лёд, губы. Задача угадать, что это было. Ошибаться очень приятно." },
+  { dim: "senses", q: ["ice"],           t: "Горячо-холодно",           d: "Кубик льда во рту, потом глоток горячего чая, и те же губы по коже. Контраст ощущается в разы ярче." },
+  { dim: "senses", q: ["mirror"],        t: "Свидание с зеркалом",      d: "Большое зеркало так, чтобы видеть нас со стороны. Многие говорят, что это совсем новый опыт." },
+  { dim: "power",  q: ["control"],       t: "Вечер не твоих правил",    d: "Один вечер ты делаешь только то, что тебе говорят. Стоп-слово заранее, и можно расслабиться полностью." },
+  { dim: "power",  q: ["lead"],          t: "Вечер твоих правил",       d: "Наоборот: всё решаешь ты, а тебя нельзя трогать без разрешения. Посмотрим, кто сдастся первым." },
+  { dim: "power",  q: ["tied"],          t: "Шёлковый шарф",            d: "Мягко: шарф или галстук на запястья, без узлов, которые трудно развязать. Главное здесь доверие, а не фиксация." },
+  { dim: "power",  q: ["rough"],         t: "Чуть смелее",              d: "Просто скажи, что сегодня хочется больше напора. Иногда одной фразы хватает, чтобы вечер стал совсем другим." },
+  { dim: "words",  q: ["fantasy"],       t: "Банка фантазий",           d: "Каждый пишет по пять записок с фантазиями, и при встречах тянем по одной. Можно сделать, можно обсудить, отказаться тоже можно." },
+  { dim: "words",  q: ["dirty"],         t: "Одна фраза",               d: "Начни с малого: в процессе скажи на ушко одну честную фразу о том, что нравится прямо сейчас. Дальше само пойдёт." },
+  { dim: "play",   q: ["roleplay"],      t: "Незнакомцы в баре",        d: "Приходим в бар по отдельности и знакомимся, будто видим друг друга впервые. Новые имена, новые истории, домой уже вместе." },
+  { dim: "play",   q: ["games"],         t: "Карты с заданиями",        d: "Своя колода: каждый пишет 10 заданий от невинных до очень смелых. Тянем по очереди, пропустить можно один раз." },
+  { dim: "play",   q: ["toys"],          t: "Первая игрушка",           d: "Выбираем вместе в онлайн-магазине, пока далеко, а пробуем при встрече. Сам выбор уже наполовину прелюдия." },
+  { dim: "adv",    q: ["newplace"],      t: "Смена декораций",          d: "Правило на месяц: ни разу в спальне. Душ, кухня, диван, а дальше по фантазии." },
+  { dim: "adv",    q: ["hotel"],         t: "Встреча в отеле",          d: "Первая встреча после разлуки сразу в отеле. Без планов на вечер, кроме одного." },
+  { dim: "adv",    q: ["quickie"],       t: "Десять минут",             d: "Посреди обычного дня, пока закипает чайник или перед выходом из дома. Неожиданность важнее продолжительности." }
+];
+
+const app = document.getElementById("app");
+let answers = {};
+let idx = -1;
+
+function el(html) { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content; }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function renderIntro() {
+  app.replaceChildren(el(`
+    <section class="stack-lg fade">
+      <div class="stack">
+        <span class="eyebrow">${NAME}, это для тебя</span>
+        <h1>Карта желаний</h1>
+        <p class="lead">Раз я сейчас не рядом, давай хотя бы так. Ответь честно, без «как правильно». В конце узнаешь свой тип, увидишь, что тебя заводит больше всего, и получишь идеи: что можно попробовать уже сейчас, на расстоянии, и что оставим до встречи.</p>
+      </div>
+      <div class="facts"><span><b>${Q.length}</b> вопросов</span><span><b>~4</b> минуты</span><span><b>6</b> шкал</span></div>
+      <div class="row"><button class="btn" id="start">Начать</button></div>
+      <p class="note">Ответы никуда не отправляются и остаются только на этом экране, пока ты сама не скопируешь результат. Всё, что ты отметишь как «Точно нет», не попадёт в советы.</p>
+    </section>`));
+  document.getElementById("start").onclick = () => { idx = 0; renderQ(); };
+}
+
+function renderQ() {
+  const q = Q[idx];
+  const cur = answers[q.id];
+  const pct = (idx / Q.length) * 100;
+  let body;
+  if (q.type === "pick") {
+    body = `
+      <div class="pick">
+        <button class="opt ${cur === "a" ? "on" : ""}" data-v="a"><span class="lbl">${esc(q.a.l)}</span></button>
+        <button class="opt ${cur === "b" ? "on" : ""}" data-v="b"><span class="lbl">${esc(q.b.l)}</span></button>
+      </div>`;
+  } else {
+    body = `<div class="opts">${SCALE.map(o => `
+      <button class="opt ${cur === o.v ? "on" : ""}" data-v="${o.v}">
+        <span class="dots">${[0,1,2,3].map(i => `<i class="${i < o.v ? "f" : ""}"></i>`).join("")}</span>
+        <span><span class="lbl">${o.l}</span><br><span class="sub">${o.s}</span></span>
+      </button>`).join("")}</div>`;
+  }
+  app.replaceChildren(el(`
+    <section class="stack-lg">
+      <div class="stack">
+        <div class="qhead">
+          <button class="back" id="back">← Назад</button>
+          <span class="counter">${idx + 1} / ${Q.length}</span>
+        </div>
+        <div class="progress"><i style="width:${pct}%"></i></div>
+      </div>
+      <div class="stack fade">
+        <span class="eyebrow">${q.type === "pick" ? "Это или то" : "Насколько тебе это интересно?"}</span>
+        <p class="qtext">${esc(q.text)}</p>
+      </div>
+      <div class="fade">${body}</div>
+    </section>`));
+  document.getElementById("back").onclick = () => { if (idx === 0) { idx = -1; renderIntro(); } else { idx--; renderQ(); } };
+  app.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+    const v = b.dataset.v;
+    answers[q.id] = q.type === "pick" ? v : Number(v);
+    app.querySelectorAll(".opt").forEach(x => x.classList.toggle("on", x === b));
+    setTimeout(() => { idx++; idx < Q.length ? renderQ() : renderResult(); }, 220);
+  });
+}
+
+function score() {
+  const got = {}, max = {};
+  for (const d in DIMS) { got[d] = 0; max[d] = 0; }
+  let axis = 0;
+  for (const q of Q) {
+    const a = answers[q.id];
+    if (q.type === "pick") {
+      for (const d in DIMS) max[d] += 4 * Math.max(q.a.w[d] || 0, q.b.w[d] || 0);
+      if (a) { const o = q[a]; for (const d in o.w) got[d] += 4 * o.w[d]; axis += o.axis || 0; }
+    } else {
+      for (const d in q.w) { max[d] += 4 * q.w[d]; got[d] += (a ?? 0) * q.w[d]; }
+    }
+  }
+  // lead (0..4) minus control (0..4) plus the pick, scaled to −1..1
+  axis += (answers.lead ?? 2) - (answers.control ?? 2);
+  const pct = {};
+  for (const d in DIMS) pct[d] = Math.round(100 * got[d] / max[d]);
+  return { pct, axis: Math.max(-1, Math.min(1, axis / 6)) };
+}
+
+function pickIdeas(pct, remote, limit) {
+  const ok = IDEAS.filter(i => !!i.remote === remote && i.q.every(id => (answers[id] ?? 2) >= 2));
+  ok.forEach(i => {
+    const avg = i.q.reduce((s, id) => s + (answers[id] ?? 2), 0) / i.q.length;
+    i.score = avg * 25 + pct[i.dim] * 0.6;
+  });
+  ok.sort((a, b) => b.score - a.score);
+  const out = [], perDim = {};
+  for (const i of ok) {
+    if ((perDim[i.dim] || 0) >= 2) continue;
+    out.push(i); perDim[i.dim] = (perDim[i.dim] || 0) + 1;
+    if (out.length === limit) break;
+  }
+  return out;
+}
+
+function renderResult() {
+  const { pct, axis } = score();
+  const order = Object.keys(DIMS).sort((a, b) => pct[b] - pct[a]);
+  const top = order[0], second = order[1];
+  const now = pickIdeas(pct, true, 3);
+  const later = pickIdeas(pct, false, 4);
+  const ideas = [...now, ...later];
+  const card = i => `<div class="idea"><span class="tag">${DIMS[i.dim].name}</span><h3>${i.t}</h3><p>${i.d}</p></div>`;
+  const scaleQs = Q.filter(q => q.type !== "pick");
+  const yes = scaleQs.filter(q => answers[q.id] === 4).map(q => q.short);
+  const maybe = scaleQs.filter(q => answers[q.id] === 3 || answers[q.id] === 2).map(q => q.short);
+  const no = scaleQs.filter(q => answers[q.id] === 0).map(q => q.short);
+  const axisLabel = axis > .25 ? "Тебе нравится вести" : axis < -.25 ? "Тебе нравится, когда ведут" : "Тебе нравится и вести, и отдаваться";
+  const list = (arr) => arr.length ? arr.map(x => `<li>${esc(x)}</li>`).join("") : `<li class="empty">пусто</li>`;
+
+  app.replaceChildren(el(`
+    <section class="stack-lg fade">
+      <div class="hero-card stack">
+        <span class="eyebrow">${NAME}, твой тип</span>
+        <div class="arch">${DIMS[top].arch}</div>
+        <p>${DIMS[top].about}</p>
+        <p class="lead" style="font-size:15px">На втором месте у тебя ${DIMS[second].name.toLowerCase()}: ${second === "tender" ? "тебе важна близость" : second === "senses" ? "тебе важны новые ощущения" : second === "power" ? "тебе интересна игра в контроль" : second === "words" ? "тебя заводят слова" : second === "play" ? "тебе нравится играть роли" : "тебе нужна новизна"}.</p>
+      </div>
+
+      <div class="stack">
+        <h3>Твой профиль</h3>
+        <div class="bars">${order.map(d => `
+          <div class="bar"><span>${DIMS[d].name}</span><span class="track"><i style="width:${pct[d]}%"></i></span><span class="pct">${pct[d]}%</span></div>`).join("")}
+        </div>
+      </div>
+
+      <div class="axis">
+        <h3>${axisLabel}</h3>
+        <div class="line"><b style="left:${50 + axis * 46}%"></b></div>
+        <div class="ends"><span>Ведомая</span><span>Ведущая</span></div>
+      </div>
+
+      <hr class="sep">
+
+      ${ideas.length ? "" : `<p class="lead">Похоже, сейчас тебе ничего из списка не откликается. Это тоже нормально. Давай просто поговорим о том, что тебе нравится уже сейчас.</p>`}
+
+      ${now.length ? `<div class="stack">
+        <span class="eyebrow">Пока мы далеко</span>
+        <h2>Можно попробовать уже сегодня</h2>
+        <div class="ideas">${now.map(card).join("")}</div>
+      </div>` : ""}
+
+      ${later.length ? `<div class="stack">
+        <span class="eyebrow">Когда увидимся</span>
+        <h2>Это оставим до встречи</h2>
+        <div class="ideas">${later.map(card).join("")}</div>
+      </div>` : ""}
+
+      <div class="stack">
+        <h3>Да, может быть, нет</h3>
+        <p class="lead" style="font-size:15px">Пришли мне это: так проще говорить о желаниях и сразу видно, где границы.</p>
+        <div class="lists">
+          <div class="yes"><h4>Хочу</h4><ul>${list(yes)}</ul></div>
+          <div class="maybe"><h4>Обсудить</h4><ul>${list(maybe)}</ul></div>
+          <div class="no"><h4>Нет</h4><ul>${list(no)}</ul></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn" id="copy">Скопировать и прислать мне</button>
+        <button class="btn-ghost" id="again">Пройти заново</button>
+        <span class="copied" id="copied" hidden>Скопировано, можно отправлять</span>
+      </div>
+      <p class="note">Я тоже пройду, потом сравним. Любую идею можно остановить в любой момент, а до встречи придумаем стоп-слово.</p>
+      <textarea id="copytext" readonly hidden style="width:100%;min-height:160px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;font-size:14px"></textarea>
+    </section>`));
+
+  const text = [
+    `Мой результат «Карта желаний»: ${DIMS[top].arch}`,
+    order.map(d => `${DIMS[d].name}: ${pct[d]}%`).join(", "),
+    axisLabel + ".",
+    now.length ? `Пока далеко: ${now.map(i => i.t).join("; ")}` : "",
+    later.length ? `Когда увидимся: ${later.map(i => i.t).join("; ")}` : "",
+    yes.length ? `Очень хочу: ${yes.join(", ")}` : "",
+    no.length ? `Точно нет: ${no.join(", ")}` : ""
+  ].filter(Boolean).join("\n");
+
+  document.getElementById("copy").onclick = async () => {
+    const msg = document.getElementById("copied");
+    try {
+      await navigator.clipboard.writeText(text);
+      msg.hidden = false;
+    } catch (e) {
+      const ta = document.getElementById("copytext");
+      ta.value = text; ta.hidden = false; ta.focus(); ta.select();
+      msg.textContent = "Выдели текст ниже и скопируй"; msg.hidden = false;
+    }
+  };
+  document.getElementById("again").onclick = () => { answers = {}; idx = -1; renderIntro(); window.scrollTo(0, 0); };
+  window.scrollTo(0, 0);
+}
+
+renderIntro();
+</script>
+</body>
+</html>
