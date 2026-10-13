@@ -364,11 +364,21 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
 .groups .g-yes h4 { color: var(--accent); } .groups .g-try h4 { color: var(--try); } .groups .g-maybe h4 { color: var(--maybe); }
 .groups .g-notyet h4 { color: var(--notyet); } .groups .g-no h4 { color: var(--nope); } .groups .g-star h4 { color: var(--amber); }
 .chip { border-radius: 14px; }
+.roles { border-color: var(--accent); background: linear-gradient(160deg, var(--surface-2), var(--surface)); }
+.who { display: flex; flex-direction: column; gap: 2px; }
+.who span { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.who b { font-family: var(--display); font-style: italic; font-size: 26px; font-weight: 600; color: var(--amber); }
+.page { padding-block: 8px; }
+.gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.gallery img { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; }
+.capture .arch { background: none; -webkit-text-fill-color: var(--accent); color: var(--accent); }
+.capture .fade { animation: none; }
 @media (max-width: 560px) { .groups { grid-template-columns: 1fr; } }
 </style>
 
 <main class="wrap" id="app"></main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 const NAME = "Дара";
 
@@ -455,6 +465,13 @@ const TOPICS = [
     "Смотрим порно вместе",
     "Каждый присылает сцену, которую хочет повторить",
     "Повторяем сцену из порно"] },
+  { id: "roles", icon: "crown", title: "Смена ролей", intro: "Теперь ведёшь ты. Без приказов, просто всё в твоих руках.", steps: [
+    "Ты сверху и задаёшь темп",
+    "Ты решаешь, когда мне можно тебя трогать",
+    "Ты раздеваешь меня так, как хочешь",
+    "Ты дразнишь меня и решаешь, когда мне можно кончить",
+    "Мои руки связаны, а ты делаешь всё, что хочешь",
+    "Ты садишься мне на лицо"] },
   { id: "bath", icon: "tender", title: "Ванна и нежность", steps: [
     "Ванна вместе со свечами и пеной",
     "Массаж в ванне",
@@ -463,6 +480,11 @@ const TOPICS = [
 ];
 
 const EXTRA = [
+  { id: "rolesWho", type: "choice", icon: "crown", title: "Смена ролей", text: "Кто начинает, когда ведёшь ты?", opts: [
+    "Я сама, когда захочу", "Ты предложи, а я решу", "Ты подтолкни, а дальше я", "Договоримся о таком вечере заранее"] },
+  { id: "rolesWhat", type: "multi", icon: "crown", title: "Смена ролей", text: "Что тебе важнее всего, когда ведёшь ты?", opts: [
+    "Видеть, как сильно меня хотят", "Чтобы меня просили", "Решать без слов: взглядом и руками", "Чтобы не перехватывали инициативу",
+    "Всё медленно, в моём темпе", "Чтобы потом снова повели меня"] },
   { id: "words", type: "multi", icon: "words", title: "Слова на ушко", text: "Что тебе хочется слышать на ушко?", opts: [
     "Что ты моя", "Какая ты красивая", "Что я с тобой сделаю", "«Хорошая девочка»", "Как сильно я тебя хочу",
     "Грязные слова", "Приказы", "Твоё имя"] },
@@ -587,7 +609,7 @@ function renderQ() {
   });
 }
 
-function renderResult() {
+function renderResult(shared) {
   const stepAns = (t, i) => ans[`${t.id}.${i}`];
   const topicCard = t => {
     const go = t.steps.map((s, i) => ({ s, i, v: stepAns(t, i) }));
@@ -612,50 +634,87 @@ function renderResult() {
   const chips = arr => `<div class="chips">${(arr || []).map(x => `<span class="chip">${esc(x)}</span>`).join("")}</div>`;
   const G = [["yes", "Очень хочу"], ["try", "Попробуем"], ["maybe", "Возможно, это круто"], ["notyet", "Пока не готова"], ["no", "Нет"]];
 
+  // смена ролей — отдельным акцентом
+  const roles = TOPICS.find(t => t.id === "roles");
+  const rolesGo = roles.steps.map((s, i) => ({ s, v: stepAns(roles, i), st: star[`roles.${i}`] }));
+  const rolesWant = rolesGo.filter(x => x.v === "yes" || x.v === "try");
+  const rolesLater = rolesGo.filter(x => x.v === "maybe" || x.v === "notyet");
+  const showRoles = rolesWant.length || rolesLater.length || ans.rolesWho || ans.rolesWhat?.length;
+
+  // страницы результата: каждая становится отдельной картинкой
+  const topicsNoRoles = TOPICS.filter(t => t.id !== "roles");
+  const topicPages = [];
+  for (let i = 0; i < topicsNoRoles.length; i += 3) topicPages.push(topicsNoRoles.slice(i, i + 3));
+
   app.replaceChildren(el(`
     <section class="stack-lg fade">
-      <div class="hero-card stack">
-        ${art("crown", "arch-art")}
-        <span class="eyebrow">${NAME}, твоя карта глубже</span>
-        <div class="arch">Лесенки</div>
-        <p>По каждой теме видно, с чего начать и докуда ты готова сейчас. «Пока не готова» — это на потом, без спешки.</p>
-        <div class="legend">${SC.map(o => `<span class="pill ${o.v}">${o.l}</span>`).join("")}</div>
+      <div class="page stack-lg">
+        <div class="hero-card stack">
+          ${art("crown", "arch-art")}
+          <span class="eyebrow">${shared ? `Результат: ${NAME}` : `${NAME}, твоя карта глубже`}</span>
+          <div class="arch">Лесенки</div>
+          <p>По каждой теме видно, с чего начать и докуда ${shared ? "она готова" : "ты готова"} сейчас. «Пока не готова» — это на потом, без спешки.</p>
+          <div class="legend">${SC.map(o => `<span class="pill ${o.v}">${o.l}</span>`).join("")}</div>
+        </div>
+
+        ${showRoles ? `<div class="callout roles">
+          ${art("crown", "q-art")}
+          <span class="eyebrow">Смена ролей</span>
+          <h2>${shared ? "Когда ведёт она" : "Когда ведёшь ты"}</h2>
+          ${ans.rolesWho ? `<p class="who"><span>Кто начинает</span><b>${esc(ans.rolesWho)}</b></p>` : ""}
+          ${rolesWant.length ? `<p class="lead" style="font-size:15px">Что хочется:</p>
+          <div class="chips">${rolesWant.map(x => `<span class="chip">${x.st ? "★ " : ""}${esc(x.s)}</span>`).join("")}</div>` : ""}
+          ${ans.rolesWhat?.length ? `<p class="lead" style="font-size:15px">Что важнее всего:</p>${chips(ans.rolesWhat)}` : ""}
+          ${rolesLater.length ? `<p class="first" style="border-color:var(--maybe)"><b style="color:var(--maybe)">Возможно, потом:</b> ${rolesLater.map(x => esc(x.s.toLowerCase())).join("; ")}.</p>` : ""}
+        </div>` : ""}
+
+        ${starred.length ? `<div class="callout">
+          <span class="eyebrow">★ Можешь начинать, потихоньку</span>
+          <h3>Если будет некомфортно, я скажу</h3>
+          <div class="chips">${starred.map(x => `<span class="chip star-chip">★ ${esc(x)}</span>`).join("")}</div>
+        </div>` : ""}
       </div>
 
-      ${starred.length ? `<div class="callout">
-        <span class="eyebrow">★ Можешь начинать, потихоньку</span>
-        <h3>Если будет некомфортно, я скажу</h3>
-        <div class="chips">${starred.map(x => `<span class="chip star-chip">★ ${esc(x)}</span>`).join("")}</div>
-      </div>` : ""}
+      ${topicPages.map(pg => `<div class="page stack-lg">${pg.map(topicCard).join('<hr class="sep">')}</div>`).join("")}
 
-      ${TOPICS.map(topicCard).join('<hr class="sep">')}
+      <div class="page stack-lg">
+        ${topicCard(roles)}
+        ${ans.words?.length ? `<div class="stack"><h3>Что хочется слышать на ушко</h3>${chips(ans.words)}</div>` : ""}
+        ${ans.look?.length ? `<div class="stack"><h3>Образ для вечера</h3>${chips(ans.look)}</div>` : ""}
+        ${ans.afterWords?.length || ans.afterTalk ? `<div class="callout">
+          <span class="eyebrow">После</span>
+          ${ans.afterWords?.length ? `<p class="lead" style="font-size:15px">Что сказать после:</p>${chips(ans.afterWords)}` : ""}
+          ${ans.afterTalk ? `<p class="lead" style="font-size:15px">Обсудить, как было: <b style="color:var(--fg)">${esc(ans.afterTalk.toLowerCase())}</b></p>` : ""}
+        </div>` : ""}
+      </div>
 
-      <hr class="sep">
-
-      ${ans.words?.length ? `<div class="stack"><h3>Что хочется слышать на ушко</h3>${chips(ans.words)}</div>` : ""}
-      ${ans.look?.length ? `<div class="stack"><h3>Образ для вечера</h3>${chips(ans.look)}</div>` : ""}
-      ${ans.afterWords?.length || ans.afterTalk ? `<div class="callout">
-        <span class="eyebrow">После</span>
-        ${ans.afterWords?.length ? `<p class="lead" style="font-size:15px">Что сказать тебе после:</p>${chips(ans.afterWords)}` : ""}
-        ${ans.afterTalk ? `<p class="lead" style="font-size:15px">Обсудить, как было: <b style="color:var(--fg)">${esc(ans.afterTalk.toLowerCase())}</b></p>` : ""}
-      </div>` : ""}
-
-      <div class="stack">
+      <div class="page stack">
         <h3>Всё вместе</h3>
         <div class="groups">${G.map(([v, h]) => `<div class="g-${v}"><h4>${h}</h4><ul>${li(group(v))}</ul></div>`).join("")}</div>
       </div>
 
-      <div class="row">
-        <button class="btn" id="copy">Скопировать и прислать мне</button>
-        <button class="btn-ghost" id="again">Пройти заново</button>
-        <span class="copied" id="copied" hidden>Скопировано, можно отправлять</span>
+      <div class="callout">
+        <span class="eyebrow">${shared ? "Сохранить" : "Отправить мне"}</span>
+        <h3>${shared ? "Картинки и ссылка" : "Пришли результат картинками или ссылкой"}</h3>
+        <div class="row">
+          <button class="btn" id="imgs">Сделать картинки</button>
+          <button class="btn-ghost" id="link">Скопировать ссылку</button>
+          ${shared ? "" : `<button class="btn-ghost" id="copy">Скопировать текстом</button>`}
+        </div>
+        <span class="copied" id="copied" hidden></span>
+        <input id="linkField" class="wish" style="min-height:0" readonly hidden>
+        <div id="gallery" class="gallery" hidden></div>
       </div>
+      ${shared ? `<div class="row"><a class="btn-ghost" href="deep.html" style="text-decoration:none">Пройти самому</a></div>` :
+      `<div class="row"><button class="btn-ghost" id="again">Пройти заново</button></div>`}
       <p class="note">Ничего не нужно делать сразу. Начинаем с первых ступенек, а светофор работает всегда: «жёлтый» — помедленнее, «красный» — стоп.</p>
       <textarea id="copytext" readonly hidden style="width:100%;min-height:160px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;font-size:14px"></textarea>
     </section>`));
 
   const text = [
     "Мой результат «Карта желаний. Глубже»",
+    ans.rolesWho ? `Смена ролей, кто начинает: ${ans.rolesWho}` : "",
+    ans.rolesWhat?.length ? `Когда веду я, важно: ${ans.rolesWhat.join(", ")}` : "",
     ...TOPICS.map(t => `${t.title}: ` + t.steps.map((s, i) => `${i + 1}) ${s.toLowerCase()} — ${SHORT[stepAns(t, i)] || "—"}${star[`${t.id}.${i}`] ? " ★" : ""}`).join("; ")),
     starred.length ? `★ Можешь начинать, потихоньку: ${starred.join("; ")}` : "",
     ans.words?.length ? `На ушко: ${ans.words.join(", ")}` : "",
@@ -664,20 +723,109 @@ function renderResult() {
     ans.afterTalk ? `Обсудить, как было: ${ans.afterTalk}` : ""
   ].filter(Boolean).join("\n");
 
-  document.getElementById("copy").onclick = async () => {
-    const msg = document.getElementById("copied");
-    try { await navigator.clipboard.writeText(text); msg.hidden = false; }
+  const msg = document.getElementById("copied");
+  const say = t => { msg.textContent = t; msg.hidden = false; };
+  const copyBtn = document.getElementById("copy");
+  if (copyBtn) copyBtn.onclick = async () => {
+    try { await navigator.clipboard.writeText(text); say("Текст скопирован, можно отправлять"); }
     catch (e) {
       const ta = document.getElementById("copytext");
       ta.value = text; ta.hidden = false; ta.focus(); ta.select();
-      msg.textContent = "Выдели текст ниже и скопируй"; msg.hidden = false;
+      say("Выдели текст ниже и скопируй");
     }
   };
-  document.getElementById("again").onclick = () => { ans = {}; star = {}; idx = -1; renderIntro(); window.scrollTo(0, 0); };
+  document.getElementById("link").onclick = async () => {
+    const url = location.href.split("#")[0] + "#r=" + encodeState();
+    const f = document.getElementById("linkField");
+    f.value = url; f.hidden = false;
+    try { await navigator.clipboard.writeText(url); say("Ссылка скопирована. По ней откроется этот результат"); }
+    catch (e) { f.focus(); f.select(); say("Скопируй ссылку из поля ниже"); }
+  };
+  document.getElementById("imgs").onclick = () => makeImages(say);
+  const again = document.getElementById("again");
+  if (again) again.onclick = () => { ans = {}; star = {}; idx = -1; history.replaceState(null, "", location.pathname); renderIntro(); window.scrollTo(0, 0); };
   window.scrollTo(0, 0);
 }
 
-renderIntro();
+// ---------- ссылка на результат: ответы зашиты в адрес после # ----------
+const CODE = { yes: "y", try: "t", maybe: "m", notyet: "n", no: "x" };
+const DECODE = Object.fromEntries(Object.entries(CODE).map(([k, v]) => [v, k]));
+function encodeState() {
+  const steps = SCREENS.filter(q => q.topic);
+  const st = {
+    v: steps.map(q => CODE[ans[q.id]] || "_").join(""),
+    s: steps.map(q => star[q.id] ? 1 : 0).join(""),
+    e: Object.fromEntries(EXTRA.map(q => [q.id, q.type === "multi" ? (ans[q.id] || []).map(o => q.opts.indexOf(o)) : q.opts.indexOf(ans[q.id])]))
+  };
+  const bytes = new TextEncoder().encode(JSON.stringify(st));
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function decodeState(code) {
+  const bin = atob(code.replace(/-/g, "+").replace(/_/g, "/"));
+  const st = JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))));
+  const steps = SCREENS.filter(q => q.topic);
+  ans = {}; star = {};
+  steps.forEach((q, i) => { const v = DECODE[st.v[i]]; if (v) ans[q.id] = v; if (st.s[i] === "1") star[q.id] = true; });
+  EXTRA.forEach(q => {
+    const e = st.e?.[q.id];
+    if (q.type === "multi" && Array.isArray(e)) ans[q.id] = e.map(i => q.opts[i]).filter(Boolean);
+    else if (typeof e === "number" && e >= 0) ans[q.id] = q.opts[e];
+  });
+}
+
+// ---------- картинки ----------
+function inlineSvgs(root) {
+  const grads = ["hot", "flame"].map(id => document.getElementById(id)?.outerHTML || "").join("");
+  root.querySelectorAll("svg.ill use").forEach(u => {
+    const sym = document.querySelector(u.getAttribute("href"));
+    const svg = u.closest("svg");
+    if (!sym || !svg) return;
+    svg.innerHTML = `<defs>${grads}</defs>` + sym.innerHTML;
+    svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  });
+}
+
+async function makeImages(say) {
+  const btn = document.getElementById("imgs"), gal = document.getElementById("gallery");
+  if (!window.html2canvas) { say("Не получилось загрузить генератор картинок. Проверь интернет и попробуй ещё раз"); return; }
+  btn.disabled = true; say("Рисую картинки…");
+  const pages = [...document.querySelectorAll(".page")];
+  inlineSvgs(document.getElementById("app"));
+  document.documentElement.classList.add("capture");
+  const bg = getComputedStyle(document.body).backgroundColor;
+  const files = [];
+  try {
+    for (let i = 0; i < pages.length; i++) {
+      const canvas = await html2canvas(pages[i], { backgroundColor: bg, scale: 2, useCORS: true, logging: false });
+      const blob = await new Promise(r => canvas.toBlob(r, "image/png"));
+      files.push(new File([blob], `dara-${i + 1}.png`, { type: "image/png" }));
+    }
+  } catch (e) {
+    say("Не получилось сделать картинки: " + e.message);
+    btn.disabled = false; document.documentElement.classList.remove("capture"); return;
+  }
+  document.documentElement.classList.remove("capture");
+  btn.disabled = false;
+  gal.replaceChildren(el(files.map((f, i) => `<a href="${URL.createObjectURL(f)}" download="${f.name}"><img src="${URL.createObjectURL(f)}" alt="Картинка ${i + 1}"></a>`).join("")));
+  gal.hidden = false;
+  if (navigator.canShare && navigator.canShare({ files })) {
+    say(`Готово: ${files.length} картинок. Нажми «Отправить», чтобы переслать их`);
+    const share = document.createElement("button");
+    share.className = "btn"; share.textContent = "Отправить картинки";
+    share.onclick = () => navigator.share({ files, title: "Карта желаний. Глубже" }).catch(() => {});
+    gal.before(share);
+  } else {
+    say(`Готово: ${files.length} картинок. Нажми на картинку, чтобы скачать, или зажми и сохрани`);
+  }
+}
+
+if (location.hash.startsWith("#r=")) {
+  try { decodeState(location.hash.slice(3)); renderResult(true); }
+  catch (e) { renderIntro(); }
+} else {
+  renderIntro();
+}
 </script>
+
 </body>
 </html>
