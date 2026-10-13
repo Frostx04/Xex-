@@ -414,6 +414,9 @@ const Q = [
   { id: "reverse",  short: "Разворот ролей",       text: "Поменяться ролями: ты командуешь, наказываешь и садишься партнёру на лицо", w: { power: 1 } },
   { id: "marksPhoto", short: "Фото следов",        text: "Присылать фото следов от ремня и укусов, пока они не сошли", w: { pain: .6, adv: .4 } },
   { id: "fetish",   short: "Латекс и кожа",        text: "Латекс, кожа, фетиш-одежда и маска на лицо", w: { play: 1, senses: .3 } },
+  { id: "neckHand", short: "Рука на шее",          text: "Рука на шее в процессе: лежит и держит, но не сжимает", w: { power: 1 } },
+  { id: "scruff",   short: "За загривок",          text: "Когда держат сзади за шею, за загривок, и так ведут", w: { power: .9, senses: .2 } },
+  { id: "jaw",      short: "Держать за подбородок", text: "Когда держат за подбородок и заставляют смотреть в глаза", w: { power: .8, words: .3 } },
   { id: "cnc",      short: "Игра в сопротивление", text: "Игра в сопротивление: ты вырываешься и говоришь «нет», а тебя всё равно берут. Всё обговорено заранее, стоп-слово работает", w: { power: 1, play: .5 } }
 ];
 
@@ -503,7 +506,10 @@ const IDEAS = [
   { hot: true, dim: "power",  q: ["deep"],      t: "До конца",            d: "Держу тебя за голову и задаю глубину. Отстраниться самой нельзя, но хлопок по бедру останавливает сразу." },
   { hot: true, dim: "words",  q: ["spit"],      t: "Открой рот",          d: "Приказываю открыть рот и плюю в него или на тебя. Благодаришь за каждый." },
   { hot: true, dim: "power",  q: ["reverse"],   t: "Теперь ты главная",   d: "Один вечер всё наоборот: ты связываешь, наказываешь и садишься мне на лицо. Мне можно только просить." },
-  { hot: true, dim: "play",   q: ["fetish"],    t: "Латекс",              d: "Ты в латексе или коже и в маске. Одного нового образа хватит, чтобы вечер стал совсем другим." }
+  { hot: true, dim: "play",   q: ["fetish"],    t: "Латекс",              d: "Ты в латексе или коже и в маске. Одного нового образа хватит, чтобы вечер стал совсем другим." },
+  { hot: true, dim: "power",  q: ["neckHand"], t: "Рука на шее",         d: "Кладу ладонь тебе на шею и просто держу. Не давлю, не сжимаю: чувства власти хватает и так. Пальцы никогда не на боковых сторонах шеи." },
+  { hot: true, dim: "power",  q: ["scruff"],   t: "За загривок",         d: "Беру тебя сзади за шею, за загривок, и веду куда хочу: вниз, на колени, ближе к себе. Сзади нет артерий, поэтому держать можно крепко." },
+  { hot: true, dim: "power",  q: ["jaw"],      t: "Смотри на меня",      d: "Держу тебя за подбородок и не даю отвести взгляд, пока говорю, что с тобой сделаю." }
 ];
 
 const app = document.getElementById("app");
@@ -515,7 +521,7 @@ function el(html) { const t = document.createElement("template"); t.innerHTML = 
 const ICON = {
   blind: "blindfold", depriv: "blindfold", tied: "cuffs", pinned: "cuffs", rules: "cuffs", cnc: "rope", rope: "rope",
   spank: "belt", belt: "belt", marks: "belt", edging: "lock", denial: "lock", video: "camera", photos: "camera", film: "camera",
-  collar: "collar", knees: "collar", control: "collar", pet: "ears", wax: "wax", ice: "wax", clamps: "clamps", helpless: "gag", oralKnees: "collar", clothes: "camera", command: "lock", writing: "words", toy: "cuffs", training: "collar", latefine: "belt", rpHard: "play", slaps: "pain", oralHer: "words", oralHim: "words", contract: "contract", chastity: "lock", waiting: "blindfold", masturbOrder: "camera", spreader: "cuffs", overnight: "cuffs", tickle: "senses", cumOn: "words", deep: "collar", spit: "words", reverse: "pain", remoteToy: "phone", marksPhoto: "camera", porn: "phone", fetish: "play"
+  collar: "collar", knees: "collar", control: "collar", pet: "ears", wax: "wax", ice: "wax", clamps: "clamps", helpless: "gag", oralKnees: "collar", clothes: "camera", command: "lock", writing: "words", toy: "cuffs", training: "collar", latefine: "belt", rpHard: "play", slaps: "pain", oralHer: "words", oralHim: "words", contract: "contract", chastity: "lock", waiting: "blindfold", masturbOrder: "camera", spreader: "cuffs", overnight: "cuffs", tickle: "senses", cumOn: "words", deep: "collar", spit: "words", reverse: "pain", remoteToy: "phone", marksPhoto: "camera", porn: "phone", fetish: "play", neckHand: "collar", scruff: "collar", jaw: "collar"
 };
 function plural(n, one, few, many) {
   const m10 = n % 10, m100 = n % 100;
@@ -563,7 +569,10 @@ const DEFS = {
   spit:     "Одна из самых сильных форм унижения в игре. Многим неприятно, поэтому только если правда хочется.",
   reverse:  "Фейсситтинг — когда ты садишься партнёру на лицо и сама управляешь процессом.",
   remoteToy: "Есть вибраторы, которыми управляют через приложение по интернету, из любой точки мира. Партнёр меняет силу и ритм, а ты просто чувствуешь.",
-  fetish:   "Фетиш-одежда — вещи из латекса, винила и кожи. Плотно облегают тело и сильно меняют и ощущения, и образ."
+  fetish:   "Фетиш-одежда — вещи из латекса, винила и кожи. Плотно облегают тело и сильно меняют и ощущения, и образ.",
+  neckHand: "Это безопасная версия удушения: ладонь просто лежит на шее, без давления. Сжимать нельзя: по бокам шеи проходят сонные артерии, и даже несильное давление может привести к потере сознания, инсульту или остановке сердца. Спереди можно повредить гортань.",
+  scruff:   "Загривок — задняя часть шеи у основания головы. Там нет крупных сосудов и гортани, поэтому это самый безопасный способ держать за шею.",
+  jaw:      "Хват за подбородок и челюсть, не за горло. Даёт то же ощущение власти, что и рука на шее, но без риска."
 };
 const REAL = Q.filter(q => q.type !== "gate");
 const HARD = new Set(Q.slice(Q.findIndex(q => q.type === "gate") + 1).map(q => q.id));
