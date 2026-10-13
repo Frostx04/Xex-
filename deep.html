@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Карта желаний: глубже</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow candle-lit column; one question at a time, result reads like a personal card. */
+:root {
+  --bg: #170d14;
+  --surface: #23141e;
+  --surface-2: #2e1a27;
+  --line: #43293a;
+  --fg: #f4e7ec;
+  --muted: #b596a6;
+  --accent: #f07f93;
+  --amber: #f2b46d;
+  --no: #8c6a7c;
+  --display: "Cormorant Garamond", "Georgia", "Times New Roman", serif;
+  --body: "Manrope", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgba(240,127,147,.16), transparent 60%),
+    radial-gradient(80% 40% at 100% 100%, rgba(242,180,109,.08), transparent 70%),
+    var(--bg);
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.wrap { max-width: 620px; margin: 0 auto; padding-inline: 20px; padding-block: 36px 56px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.1; }
+h1 { font-size: clamp(44px, 11vw, 72px); font-style: italic; letter-spacing: -.01em; }
+h2 { font-size: clamp(30px, 7vw, 42px); font-style: italic; }
+h3 { font-size: 24px; }
+p { margin: 0; }
+.eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.lead { color: var(--muted); font-size: 17px; max-width: 46ch; }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.stack-lg { display: flex; flex-direction: column; gap: 28px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+
+.btn {
+  border: 0; border-radius: 999px; padding: 15px 28px; font-weight: 700; font-size: 16px;
+  background: linear-gradient(100deg, var(--accent), var(--amber)); color: #2a0f1b;
+  box-shadow: 0 8px 30px rgba(240,127,147,.25);
+  transition: transform .15s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn-ghost { background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-weight: 600; color: var(--fg); }
+.btn-ghost:hover { border-color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+/* intro */
+.facts { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--muted); font-size: 14px; }
+.facts b { color: var(--fg); font-weight: 600; }
+.note { font-size: 13px; color: var(--muted); border-left: 2px solid var(--line); padding-left: 12px; }
+
+/* quiz */
+.progress { height: 4px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+.progress > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--amber)); transition: width .35s ease; }
+.qhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.counter { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); }
+.qtext { font-family: var(--display); font-size: clamp(28px, 6.4vw, 38px); font-weight: 600; line-height: 1.15; text-wrap: balance; min-height: 2.4em; }
+.qhint { color: var(--muted); font-size: 15px; }
+.opt.multi { align-items: center; }
+.opt .box { width: 20px; height: 20px; flex: none; border-radius: 6px; border: 2px solid var(--line); display: grid; place-items: center; }
+.opt.multi.on .box { background: var(--accent); border-color: var(--accent); }
+.opt.multi.on .box::after { content: ""; width: 8px; height: 4px; border: 2px solid var(--bg); border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+.star { margin-top: 14px; width: 100%; display: flex; gap: 14px; align-items: center; text-align: left; background: transparent; border: 1px dashed var(--line); border-radius: 14px; padding: 12px 16px; color: var(--muted); font-size: 14px; }
+.star .sub { font-size: 12px; }
+.star-ic { font-size: 24px; line-height: 1; color: var(--muted); width: 26px; text-align: center; }
+.star.on { border-style: solid; border-color: var(--amber); color: var(--fg); }
+.star.on .star-ic { color: var(--amber); }
+.wish { width: 100%; min-height: 140px; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 14px; padding: 14px; font: inherit; font-size: 16px; resize: vertical; }
+.wish:focus { outline: 2px solid var(--amber); outline-offset: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; font-size: 14px; }
+.chip.star-chip { border-color: var(--amber); }
+.callout { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.wheel-wrap { position: relative; width: min(320px, 100%); margin: 0 auto; aspect-ratio: 1; max-width: 100%; }
+.wheel-wrap svg { width: 100%; height: 100%; display: block; }
+.wheel { transform-origin: 150px 150px; transition: transform 4.2s cubic-bezier(.12,.7,.08,1); }
+.pointer { position: absolute; left: 50%; top: -6px; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 22px solid var(--amber); filter: drop-shadow(0 2px 6px rgba(0,0,0,.4)); }
+.wheel-res { text-align: center; font-family: var(--display); font-style: italic; font-size: 28px; min-height: 1.3em; color: var(--amber); }
+.qdef { font-size: 14px; color: var(--muted); background: var(--surface); border-left: 2px solid var(--amber); border-radius: 0 10px 10px 0; padding: 10px 14px; }
+.qdef b { color: var(--amber); font-weight: 600; }
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt {
+  display: flex; align-items: center; gap: 14px; text-align: left;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 14px 16px; transition: border-color .15s, background .15s, transform .15s;
+}
+.opt:hover { border-color: var(--muted); }
+.opt.on { border-color: var(--accent); background: var(--surface-2); }
+.dots { display: flex; gap: 4px; flex: none; }
+.dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.dots i.f { background: var(--accent); }
+.opt .lbl { font-weight: 600; }
+.opt .sub { color: var(--muted); font-size: 13px; }
+.pick { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pick .opt { flex-direction: column; align-items: flex-start; justify-content: center; min-height: 120px; padding: 18px; }
+.pick .opt .lbl { font-family: var(--display); font-size: 24px; font-style: italic; line-height: 1.15; }
+.or { text-align: center; font-family: var(--display); font-style: italic; color: var(--muted); font-size: 18px; margin-top: -4px; }
+.back { background: none; border: 0; color: var(--muted); padding: 6px 0; font-size: 14px; }
+.back:hover { color: var(--fg); }
+.back[disabled] { opacity: .35; cursor: default; }
+.fade { animation: fade .3s ease both; }
+@keyframes fade { from { opacity: .2; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* result */
+.hero-card {
+  background: linear-gradient(160deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--line); border-radius: 22px; padding: 28px 24px;
+}
+.hero-card .arch { font-family: var(--display); font-style: italic; font-size: clamp(40px, 10vw, 58px); line-height: 1; margin-block: 6px 12px;
+  background: linear-gradient(100deg, var(--accent), var(--amber)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.bars { display: flex; flex-direction: column; gap: 14px; }
+.bar { display: grid; grid-template-columns: 9.5em 1fr 3em; gap: 12px; align-items: center; font-size: 15px; }
+.bar .track { height: 8px; background: var(--surface-2); border-radius: 8px; overflow: hidden; }
+.bar .track i { display: block; height: 100%; border-radius: 8px; background: linear-gradient(90deg, var(--accent), var(--amber)); }
+.bar .pct { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; }
+.axis { display: flex; flex-direction: column; gap: 8px; }
+.axis .ends { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.axis .line { position: relative; height: 2px; background: var(--line); margin-block: 10px; }
+.axis .line b { position: absolute; top: 50%; width: 18px; height: 18px; border-radius: 50%; transform: translate(-50%,-50%);
+  background: var(--amber); box-shadow: 0 0 0 6px rgba(242,180,109,.18); }
+.ideas { display: flex; flex-direction: column; gap: 12px; }
+.idea { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 6px; }
+.idea .tag { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--amber); font-weight: 700; }
+.idea p { color: var(--muted); font-size: 15px; }
+.lists { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+.lists > div { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.lists h4 { margin: 0 0 8px; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; }
+.lists ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.lists .yes h4 { color: var(--accent); }
+.lists .maybe h4 { color: var(--amber); }
+.lists .no h4 { color: var(--no); }
+.lists .empty { color: var(--muted); font-style: italic; }
+.copied { font-size: 13px; color: var(--amber); }
+.sep { height: 1px; background: var(--line); border: 0; margin: 0; }
+
+/* illustrations */
+.ill { display: block; overflow: visible; }
+.ill use { filter: drop-shadow(0 0 14px rgba(240,127,147,.45)); }
+.hero-art { position: relative; height: 190px; display: grid; place-items: center; }
+.hero-art .main { position: relative; width: min(260px, 66%); height: auto; animation: breathe 4.5s ease-in-out infinite; }
+.hero-art .side { position: absolute; width: min(130px, 34%); height: auto; opacity: .9; }
+.hero-art .side-l { left: 0; bottom: 0; transform: rotate(-18deg); }
+.hero-art .side-r { right: 0; top: 4px; transform: rotate(14deg); }
+.hero-art .glow { position: absolute; inset: 10% 15%; border-radius: 50%; background: radial-gradient(closest-side, rgba(240,127,147,.35), transparent); filter: blur(10px); }
+.hero-art .float { position: absolute; width: 22px; height: 22px; opacity: .8; animation: rise 6s ease-in-out infinite; }
+.hero-art .f1 { left: 30%; top: 6%; }
+.hero-art .f2 { right: 14%; top: 22%; width: 16px; height: 16px; animation-delay: -2s; }
+.hero-art .f3 { right: 30%; bottom: 4%; width: 12px; height: 12px; animation-delay: -4s; }
+@keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+@keyframes rise { 0%,100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(-14px); opacity: 1; } }
+.q-art { width: 84px; height: 60px; }
+.arch-art { width: 120px; height: 84px; }
+.idea-head { display: flex; align-items: center; gap: 14px; }
+.idea-head .ill { width: 44px; height: 34px; flex: none; }
+@media (max-width: 560px) {
+  .lists { grid-template-columns: 1fr; }
+  .bar { grid-template-columns: 7.5em 1fr 2.6em; font-size: 14px; }
+  .pick { grid-template-columns: 1fr; }
+  .pick .opt { min-height: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="hot" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff8fa3"/><stop offset=".55" stop-color="#f0607a"/><stop offset="1" stop-color="#f2b46d"/>
+    </linearGradient>
+    <radialGradient id="flame" cx=".5" cy=".7" r=".6">
+      <stop offset="0" stop-color="#fff1c9"/><stop offset=".5" stop-color="#f2b46d"/><stop offset="1" stop-color="#f0607a"/>
+    </radialGradient>
+    <!-- губы -->
+    <symbol id="i-words" viewBox="0 0 120 70">
+      <path fill="url(#hot)" d="M8 35 C22 31 34 10 48 10 C54 10 58 14 60 18 C62 14 66 10 72 10 C86 10 98 31 112 35 C98 41 82 62 60 62 C38 62 22 41 8 35 Z"/>
+      <path fill="none" stroke="#5a1628" stroke-width="2.2" stroke-linecap="round" d="M10 35 C30 38 44 32 60 37 C76 32 90 38 110 35"/>
+      <path fill="#fff" opacity=".35" d="M40 48 C48 52 56 53 62 52 C56 56 46 55 40 48 Z"/>
+    </symbol>
+    <!-- свеча -->
+    <symbol id="i-tender" viewBox="0 0 120 70">
+      <circle cx="60" cy="22" r="20" fill="#f2b46d" opacity=".18"/>
+      <path fill="url(#flame)" d="M60 4 C68 14 70 24 60 31 C50 24 52 14 60 4 Z"/>
+      <line x1="60" y1="31" x2="60" y2="36" stroke="#3a2230" stroke-width="2"/>
+      <path fill="url(#hot)" d="M48 36 H72 V68 H48 Z"/>
+      <path fill="#fff" opacity=".3" d="M52 36 H58 V50 C58 53 52 53 52 50 Z"/>
+    </symbol>
+    <!-- перо -->
+    <symbol id="i-senses" viewBox="0 0 120 70">
+      <path fill="url(#hot)" opacity=".9" d="M100 4 C84 6 62 18 50 36 C44 46 40 54 36 60 C52 58 66 50 78 38 C92 24 100 14 100 4 Z"/>
+      <path fill="none" stroke="#5a1628" stroke-width="1.6" stroke-linecap="round" d="M24 68 C46 48 70 26 100 4"/>
+      <path fill="none" stroke="#5a1628" stroke-width="1" opacity=".6" d="M60 34 L52 24 M70 26 L64 14 M52 44 L42 40 M66 40 L76 44 M80 28 L90 30"/>
+    </symbol>
+    <!-- шёлковая лента -->
+    <symbol id="i-power" viewBox="0 0 120 70">
+      <path fill="url(#hot)" d="M60 34 C46 12 14 6 14 28 C14 50 46 48 60 34 Z"/>
+      <path fill="url(#hot)" d="M60 34 C74 12 106 6 106 28 C106 50 74 48 60 34 Z"/>
+      <path fill="url(#hot)" d="M56 38 L40 68 L48 66 L52 70 L60 42 Z M64 38 L80 68 L72 66 L68 70 L60 42 Z"/>
+      <ellipse cx="60" cy="35" rx="8" ry="9" fill="#f0607a" stroke="#5a1628" stroke-width="1.5"/>
+      <path fill="none" stroke="#5a1628" stroke-width="1.2" opacity=".5" d="M24 26 C32 22 42 26 52 32 M96 26 C88 22 78 26 68 32"/>
+    </symbol>
+    <!-- маска -->
+    <symbol id="i-play" viewBox="0 0 120 70">
+      <path fill="url(#hot)" fill-rule="evenodd" d="M6 22 C28 10 50 14 60 26 C70 14 92 10 114 22 C114 46 96 58 78 56 C68 54 64 46 60 46 C56 46 52 54 42 56 C24 58 6 46 6 22 Z M26 34 C30 26 44 26 50 34 C44 40 30 40 26 34 Z M70 34 C76 26 90 26 94 34 C90 40 76 40 70 34 Z"/>
+      <path fill="none" stroke="#f2b46d" stroke-width="2" stroke-linecap="round" d="M114 22 C118 14 116 6 108 2"/>
+    </symbol>
+    <!-- ключ с сердцем -->
+    <symbol id="i-adv" viewBox="0 0 120 70">
+      <path fill="url(#hot)" d="M30 56 C10 42 6 28 14 20 C21 13 28 17 30 23 C32 17 39 13 46 20 C54 28 50 42 30 56 Z"/>
+      <path fill="url(#hot)" d="M48 32 H112 V39 H48 Z M94 39 H101 V52 H94 Z M104 39 H112 V48 H104 Z"/>
+      <circle cx="30" cy="31" r="5" fill="#3a2230"/>
+    </symbol>
+    <!-- наручники -->
+    <symbol id="i-cuffs" viewBox="0 0 120 70">
+      <circle cx="32" cy="42" r="19" fill="none" stroke="url(#hot)" stroke-width="7"/>
+      <circle cx="88" cy="42" r="19" fill="none" stroke="url(#hot)" stroke-width="7"/>
+      <rect x="44" y="18" width="8" height="10" rx="2" fill="#f2b46d"/>
+      <rect x="68" y="18" width="8" height="10" rx="2" fill="#f2b46d"/>
+      <g fill="none" stroke="#f2b46d" stroke-width="2.5"><ellipse cx="55" cy="18" rx="5" ry="3"/><ellipse cx="60" cy="14" rx="3" ry="5"/><ellipse cx="65" cy="18" rx="5" ry="3"/></g>
+      <path fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="2" d="M18 34 C22 28 28 25 34 25 M74 34 C78 28 84 25 90 25"/>
+    </symbol>
+    <!-- ошейник с поводком -->
+    <symbol id="i-collar" viewBox="0 0 120 70">
+      <ellipse cx="48" cy="28" rx="38" ry="15" fill="none" stroke="url(#hot)" stroke-width="9"/>
+      <g fill="#f2b46d"><circle cx="18" cy="35" r="2.6"/><circle cx="31" cy="41" r="2.6"/><circle cx="65" cy="41" r="2.6"/><circle cx="78" cy="35" r="2.6"/></g>
+      <rect x="40" y="37" width="16" height="9" rx="2" fill="#3a2230" stroke="#f2b46d" stroke-width="2"/>
+      <circle cx="48" cy="53" r="7" fill="none" stroke="#f2b46d" stroke-width="3"/>
+      <path fill="none" stroke="url(#hot)" stroke-width="3.5" stroke-linecap="round" d="M48 60 C62 72 92 68 110 44 C114 38 118 34 116 28"/>
+    </symbol>
+    <!-- верёвка -->
+    <symbol id="i-rope" viewBox="0 0 120 70">
+      <path fill="none" stroke="url(#hot)" stroke-width="7" d="M18 36 C18 12 60 14 60 36 C60 58 102 60 102 36 C102 12 60 14 60 36 C60 58 18 60 18 36 Z"/>
+      <path fill="none" stroke="#5a1628" stroke-opacity=".55" stroke-width="7" stroke-dasharray="1.5 5" d="M18 36 C18 12 60 14 60 36 C60 58 102 60 102 36 C102 12 60 14 60 36 C60 58 18 60 18 36 Z"/>
+      <path fill="none" stroke="url(#hot)" stroke-width="6" stroke-linecap="round" d="M60 36 C66 48 70 60 64 68 M60 36 C54 48 52 58 58 68"/>
+    </symbol>
+    <!-- ремень -->
+    <symbol id="i-belt" viewBox="0 0 120 70">
+      <path fill="none" stroke="url(#hot)" stroke-width="12" stroke-linecap="round" d="M8 56 C30 30 66 24 96 34"/>
+      <g fill="#3a2230"><circle cx="30" cy="40" r="2"/><circle cx="42" cy="34" r="2"/><circle cx="54" cy="30" r="2"/><circle cx="66" cy="29" r="2"/></g>
+      <rect x="92" y="20" width="22" height="28" rx="4" fill="none" stroke="#f2b46d" stroke-width="3.5"/>
+      <path stroke="#f2b46d" stroke-width="3" d="M93 34 H112"/>
+    </symbol>
+    <!-- кляп -->
+    <symbol id="i-gag" viewBox="0 0 120 70">
+      <path fill="none" stroke="url(#hot)" stroke-width="7" stroke-linecap="round" d="M4 30 C30 40 90 40 116 30"/>
+      <rect x="12" y="27" width="12" height="12" rx="2" fill="none" stroke="#f2b46d" stroke-width="2.5"/>
+      <circle cx="60" cy="38" r="17" fill="url(#hot)"/>
+      <ellipse cx="54" cy="31" rx="6" ry="4" fill="#fff" opacity=".4"/>
+    </symbol>
+    <!-- замок -->
+    <symbol id="i-lock" viewBox="0 0 120 70">
+      <path fill="none" stroke="#f2b46d" stroke-width="6" d="M44 32 V20 C44 4 76 4 76 20 V32"/>
+      <rect x="34" y="30" width="52" height="38" rx="7" fill="url(#hot)"/>
+      <path fill="#3a2230" d="M60 60 C51 54 49 48 52 44 C55 41 59 42 60 45 C61 42 65 41 68 44 C71 48 69 54 60 60 Z"/>
+    </symbol>
+    <!-- камера -->
+    <symbol id="i-camera" viewBox="0 0 120 70">
+      <rect x="14" y="16" width="66" height="42" rx="7" fill="url(#hot)"/>
+      <path fill="url(#hot)" d="M82 30 L108 16 V58 L82 44 Z"/>
+      <circle cx="28" cy="28" r="5" fill="#fff"/><circle cx="28" cy="28" r="2.5" fill="#e0233f"/>
+      <text x="38" y="32" font-family="Manrope, sans-serif" font-size="10" font-weight="700" fill="#fff">REC</text>
+    </symbol>
+    <!-- воск -->
+    <symbol id="i-wax" viewBox="0 0 120 70">
+      <g transform="rotate(-35 50 34)">
+        <rect x="40" y="18" width="18" height="40" rx="2" fill="url(#hot)"/>
+        <path fill="url(#flame)" d="M49 2 C55 9 56 14 49 18 C42 14 43 9 49 2 Z"/>
+      </g>
+      <g fill="#ff8fa3"><path d="M84 30 C88 36 88 40 84 40 C80 40 80 36 84 30 Z"/><path d="M94 44 C98 50 98 54 94 54 C90 54 90 50 94 44 Z"/><path d="M84 56 C87 61 87 64 84 64 C81 64 81 61 84 56 Z"/></g>
+    </symbol>
+    <!-- зажимы -->
+    <symbol id="i-clamps" viewBox="0 0 120 70">
+      <path fill="none" stroke="url(#hot)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" d="M14 10 L28 40 L42 10 M78 10 L92 40 L106 10"/>
+      <circle cx="28" cy="42" r="5" fill="#f2b46d"/><circle cx="92" cy="42" r="5" fill="#f2b46d"/>
+      <path fill="none" stroke="#f2b46d" stroke-width="3" stroke-dasharray="4 3" d="M28 46 C46 70 74 70 92 46"/>
+    </symbol>
+    <!-- повязка -->
+    <symbol id="i-blindfold" viewBox="0 0 120 70">
+      <path fill="url(#hot)" d="M6 26 C34 20 86 20 114 26 L114 42 C86 36 34 36 6 42 Z"/>
+      <path fill="none" stroke="#5a1628" stroke-width="1.5" opacity=".5" d="M6 34 C34 28 86 28 114 34"/>
+      <path fill="url(#hot)" d="M110 34 C118 44 120 56 112 66 L106 62 C112 54 110 44 104 38 Z M110 34 C116 42 104 54 96 62 L92 58 C100 50 106 42 104 36 Z"/>
+    </symbol>
+    <!-- ушки -->
+    <symbol id="i-ears" viewBox="0 0 120 70">
+      <path fill="none" stroke="url(#hot)" stroke-width="5" stroke-linecap="round" d="M16 64 C26 22 94 22 104 64"/>
+      <path fill="url(#hot)" d="M30 38 L36 4 L56 26 Z M90 38 L84 4 L64 26 Z"/>
+      <path fill="#3a2230" d="M36 30 L38 14 L48 26 Z M84 30 L82 14 L72 26 Z"/>
+    </symbol>
+    <!-- контракт -->
+    <symbol id="i-contract" viewBox="0 0 120 70">
+      <path fill="url(#hot)" d="M34 2 H80 L90 12 V68 H34 Z"/>
+      <path fill="none" stroke="#5a1628" stroke-width="2.5" stroke-linecap="round" d="M42 16 H76 M42 26 H82 M42 36 H82 M42 46 H66"/>
+      <path fill="none" stroke="#3a2230" stroke-width="2" d="M44 58 C50 52 54 62 60 56 S68 54 70 58"/>
+      <circle cx="82" cy="56" r="9" fill="#f2b46d"/>
+      <path fill="#5a1628" d="M82 61 C77 58 76 55 78 53 C79.5 51.5 81.5 52 82 53.5 C82.5 52 84.5 51.5 86 53 C88 55 87 58 82 61 Z"/>
+    </symbol>
+    <!-- телефон с пультом -->
+    <symbol id="i-phone" viewBox="0 0 120 70">
+      <rect x="44" y="4" width="32" height="62" rx="6" fill="url(#hot)"/>
+      <rect x="48" y="12" width="24" height="42" rx="2" fill="#3a2230"/>
+      <circle cx="60" cy="33" r="7" fill="none" stroke="#f2b46d" stroke-width="2.5"/>
+      <path fill="none" stroke="#f2b46d" stroke-width="2.5" stroke-linecap="round" d="M60 26 V33"/>
+      <path fill="none" stroke="url(#hot)" stroke-width="3" stroke-linecap="round" d="M86 22 C92 28 92 38 86 44 M96 14 C106 26 106 40 96 52 M34 22 C28 28 28 38 34 44 M24 14 C14 26 14 40 24 52"/>
+    </symbol>
+    <!-- корона -->
+    <symbol id="i-crown" viewBox="0 0 120 70">
+      <path fill="url(#hot)" d="M16 56 L8 14 L36 34 L60 4 L84 34 L112 14 L104 56 Z"/>
+      <rect x="16" y="56" width="88" height="10" rx="3" fill="#f2b46d"/>
+      <g fill="#fff" opacity=".85"><circle cx="8" cy="14" r="4"/><circle cx="60" cy="4" r="4"/><circle cx="112" cy="14" r="4"/></g>
+      <path fill="#5a1628" d="M60 48 C53 43 51 38 54 35 C56 33 59 34 60 36 C61 34 64 33 66 35 C69 38 67 43 60 48 Z"/>
+    </symbol>
+    <!-- флоггер -->
+    <symbol id="i-pain" viewBox="0 0 120 70">
+      <path fill="none" stroke="url(#hot)" stroke-width="9" stroke-linecap="round" d="M14 62 L40 40"/>
+      <circle cx="42" cy="38" r="5" fill="#f2b46d"/>
+      <path fill="none" stroke="url(#hot)" stroke-width="2.6" stroke-linecap="round" d="M44 36 C66 22 88 12 112 8 M44 36 C68 28 90 24 114 22 M44 36 C68 34 90 36 112 38 M44 36 C66 40 86 48 104 54 M44 36 C62 44 78 56 92 64"/>
+    </symbol>
+    <symbol id="i-heart" viewBox="0 0 24 22">
+      <path fill="url(#hot)" d="M12 21 C3 14 0 9 2 5 C4 1 9 1 12 5 C15 1 20 1 22 5 C24 9 21 14 12 21 Z"/>
+    </symbol>
+  </defs>
+</svg>
+
+<style>
+/* Часть 2: лесенки по темам и пять вариантов ответа */
+:root { --try: #f2b46d; --maybe: #c7a4e8; --notyet: #7cc4c4; --nope: #8c6a7c; }
+.topic-head { display: flex; align-items: center; gap: 12px; }
+.topic-head .ill { width: 56px; height: 40px; flex: none; }
+.step-of { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ladder { display: flex; flex-direction: column; gap: 8px; }
+.rung { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; font-size: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.rung .n { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; text-align: center; }
+.rung .t { min-width: 0; }
+.pill { font-size: 11px; font-weight: 700; letter-spacing: .04em; border-radius: 999px; padding: 4px 10px; white-space: nowrap; color: #241019; }
+.pill.yes { background: var(--accent); } .pill.try { background: var(--try); } .pill.maybe { background: var(--maybe); }
+.pill.notyet { background: var(--notyet); } .pill.no { background: transparent; color: var(--nope); border: 1px solid var(--nope); }
+.rung .st { color: var(--amber); margin-left: 4px; }
+.first { font-size: 14px; color: var(--fg); border-left: 2px solid var(--amber); padding-left: 10px; }
+.first b { color: var(--amber); font-weight: 600; }
+.opt .dot5 { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; }
+.groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.groups > div { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.groups h4 { margin: 0 0 8px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+.groups ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.groups .g-yes h4 { color: var(--accent); } .groups .g-try h4 { color: var(--try); } .groups .g-maybe h4 { color: var(--maybe); }
+.groups .g-notyet h4 { color: var(--notyet); } .groups .g-no h4 { color: var(--nope); } .groups .g-star h4 { color: var(--amber); }
+.chip { border-radius: 14px; }
+@media (max-width: 560px) { .groups { grid-template-columns: 1fr; } }
+</style>
+
+<main class="wrap" id="app"></main>
+
+<script>
+const NAME = "Дара";
+
+const SC = [
+  { v: "yes",    l: "Очень хочу",              s: "Да, да, да",                     d: 4 },
+  { v: "try",    l: "Интересно, попробуем",    s: "Хочу попробовать",               d: 3 },
+  { v: "maybe",  l: "Возможно, это круто",     s: "Есть сомнения, но любопытно",    d: 2 },
+  { v: "notyet", l: "Хочу, но пока не готова", s: "Не сейчас, но потом да",         d: 1 },
+  { v: "no",     l: "Нет, не моё",             s: "Не хочу",                        d: 0 }
+];
+const SCV = Object.fromEntries(SC.map(o => [o.v, o]));
+const SHORT = { yes: "очень хочу", try: "попробуем", maybe: "возможно", notyet: "пока не готова", no: "нет" };
+
+// темы: каждая — лесенка от мягкого к смелому
+const TOPICS = [
+  { id: "press", icon: "cuffs", title: "Напор", intro: "Когда тебя берут уверенно и не спрашивают.", steps: [
+    "Резко притягиваю тебя к себе, без предупреждения",
+    "Держу твои руки над головой, пока целую",
+    "Прижимаю всем весом, и ты не можешь пошевелиться",
+    "Разворачиваю тебя спиной и держу за бёдра",
+    "Беру грубо и быстро, будто не могу сдержаться"] },
+  { id: "neck", icon: "collar", title: "Шея и загривок", intro: "Всё без давления на горло: только держать и вести.", steps: [
+    "Рука на шее во время поцелуя, просто лежит",
+    "Держу за подбородок и смотрю в глаза",
+    "Держу за загривок и притягиваю к себе",
+    "Рука на шее в процессе, без давления",
+    "Веду тебя за загривок вниз, на колени"] },
+  { id: "collar", icon: "collar", title: "Ошейник", intro: "От украшения до поводка.", def: "Ошейник для игр бывает мягкий, кожаный или бархатный, обычно с кольцом спереди. Надевается свободно: под него должны проходить два пальца.", steps: [
+    "Ошейник просто как украшение на вечер",
+    "Ошейник в процессе",
+    "Тяну за кольцо ошейника, чтобы притянуть тебя к себе",
+    "Поводок: веду тебя за собой",
+    "Ошейник весь вечер, пока я не сниму"] },
+  { id: "knees", icon: "collar", title: "На коленях", steps: [
+    "Опуститься передо мной на колени во время поцелуев",
+    "Встать на колени, когда я прошу",
+    "Ждать меня на коленях",
+    "Встать на колени по приказу, без вопросов",
+    "Минет на коленях по приказу"] },
+  { id: "ties", icon: "rope", title: "Связывание", intro: "Лесенка от шарфа до полной беспомощности.", def: "Рядом всегда ножницы. Узлы не затягивают на суставах, руки проверяют каждые 10–15 минут: не немеют ли пальцы.", steps: [
+    "Руки связаны шарфом спереди",
+    "Руки связаны за спиной",
+    "Руки привязаны к кровати",
+    "Руки и ноги зафиксированы",
+    "Связана полностью, в повязке и не знаешь, что будет дальше"] },
+  { id: "blind", icon: "blindfold", title: "Повязка", steps: [
+    "Повязка и только прикосновения",
+    "Повязка и поцелуи по всему телу: не знаешь, куда будет следующий",
+    "Повязка и игрушка",
+    "Повязка на весь вечер"] },
+  { id: "wax", icon: "wax", title: "Воск", def: "Только специальные свечи для игр с низкой температурой. Начинают с высоты 30–40 см: чем выше, тем капля холоднее.", steps: [
+    "Воск на спину",
+    "Воск на живот и бёдра",
+    "Воск на грудь",
+    "Воск, пока ты в повязке",
+    "Воск, пока ты связана"] },
+  { id: "orgasm", icon: "lock", title: "Контроль оргазма", steps: [
+    "Останавливаюсь на самом краю и начинаю снова",
+    "Ты просишь разрешения кончить",
+    "Кончаешь только по моей команде",
+    "Весь вечер без оргазма, я только дразню",
+    "Несколько дней без оргазма, пока не разрешу",
+    "Кончаешь снова и снова, пока не попросишь остановиться"] },
+  { id: "self", icon: "camera", title: "Ласкать себя", steps: [
+    "Ласкаешь себя, пока я смотрю",
+    "Ласкаешь себя по видеосвязи",
+    "Ласкаешь себя по моим командам: быстрее, медленнее, стоп",
+    "Ласкаешь себя, пока я делаю с тобой что-то ещё"] },
+  { id: "worship", icon: "crown", title: "Поклонение", intro: "Когда всё внимание только тебе.", steps: [
+    "Целую тебя с головы до ног, медленно",
+    "Начинаю с ног и поднимаюсь выше",
+    "Куни, пока ты сама не скажешь «хватит»",
+    "Говорю, какая ты красивая, и не останавливаюсь",
+    "Ты только принимаешь, тебе ничего нельзя делать в ответ"] },
+  { id: "media", icon: "camera", title: "Фото и видео", def: "Всё хранится только у вас двоих, не в облаке. Любое фото или видео удаляется по первой просьбе.", steps: [
+    "Фото в белье для меня",
+    "Откровенные фото",
+    "Короткое видео для меня",
+    "Снимаем нас во время секса",
+    "Смотрим это видео вместе потом"] },
+  { id: "remote", icon: "phone", title: "Пульт и порно", steps: [
+    "Пульт у меня, пока ты дома одна",
+    "Пульт у меня, пока мы говорим по телефону",
+    "Смотрим порно вместе",
+    "Каждый присылает сцену, которую хочет повторить",
+    "Повторяем сцену из порно"] },
+  { id: "bath", icon: "tender", title: "Ванна и нежность", steps: [
+    "Ванна вместе со свечами и пеной",
+    "Массаж в ванне",
+    "Ванна после жёсткого вечера, как забота",
+    "Просто лежим вместе в ванне и ничего не делаем"] }
+];
+
+const EXTRA = [
+  { id: "words", type: "multi", icon: "words", title: "Слова на ушко", text: "Что тебе хочется слышать на ушко?", opts: [
+    "Что ты моя", "Какая ты красивая", "Что я с тобой сделаю", "«Хорошая девочка»", "Как сильно я тебя хочу",
+    "Грязные слова", "Приказы", "Твоё имя"] },
+  { id: "look", type: "multi", icon: "play", title: "Образ для вечера", text: "Какой образ хочется примерить?", opts: [
+    "Кружевное бельё", "Чулки и пояс", "Ничего под платьем", "Моя рубашка на голое тело", "Ошейник и больше ничего",
+    "Латекс или кожа", "Сюрприз, выберу сама"] },
+  { id: "afterWords", type: "multi", icon: "tender", title: "После", text: "Что сказать тебе после?", opts: [
+    "Что ты хорошая", "Что я тебя люблю", "Что ты была прекрасна", "Спросить, как ты", "Ничего, просто обнять"] },
+  { id: "afterTalk", type: "choice", icon: "tender", title: "После", text: "Когда лучше обсудить, как всё было?", opts: [
+    "Сразу, лёжа рядом", "Утром", "Через день", "Когда сама захочу"] }
+];
+
+// плоский список экранов: шаги всех лесенок, потом дополнительные вопросы
+const SCREENS = [];
+TOPICS.forEach(t => t.steps.forEach((text, i) => SCREENS.push({ id: `${t.id}.${i}`, topic: t, i, text })));
+EXTRA.forEach(q => SCREENS.push(q));
+
+const app = document.getElementById("app");
+let ans = {}, star = {}, idx = -1;
+
+function el(html) { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content; }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function art(id, cls) { return `<svg class="ill ${cls}" viewBox="0 0 120 70" aria-hidden="true"><use href="#i-${id}"/></svg>`; }
+const dotColor = v => ({ yes: "var(--accent)", try: "var(--try)", maybe: "var(--maybe)", notyet: "var(--notyet)", no: "var(--nope)" }[v]);
+
+function renderIntro() {
+  app.replaceChildren(el(`
+    <section class="stack-lg fade">
+      <div class="hero-art">
+        <div class="glow"></div>
+        ${art("collar", "side side-l")}
+        ${art("rope", "side side-r")}
+        ${art("words", "main")}
+      </div>
+      <div class="stack">
+        <span class="eyebrow">${NAME}, часть вторая</span>
+        <h1>Глубже</h1>
+        <p class="lead">Ты уже рассказала многое. Теперь подробнее, по тому, что тебе откликнулось. Каждая тема — лесенка: от самого мягкого к самому смелому. Отмечай каждую ступеньку, и будет видно, с чего начать и до куда ты готова.</p>
+      </div>
+      <div class="stack">
+        <span class="eyebrow">Новые варианты ответа</span>
+        <div class="legend">${SC.map(o => `<span class="pill ${o.v}">${o.l}</span>`).join("")}</div>
+        <p class="note">«Хочу, но пока не готова» значит «не сейчас, но потом да». А звёздочка ★ осталась: «можешь начинать потихоньку. Если что, я скажу».</p>
+      </div>
+      <div class="facts"><span><b>${SCREENS.length}</b> вопросов</span><span><b>${TOPICS.length}</b> тем</span><span><b>~10</b> минут</span></div>
+      <div class="row"><button class="btn" id="start">Начать</button></div>
+    </section>`));
+  document.getElementById("start").onclick = () => { idx = 0; renderQ(); };
+}
+
+function next() { idx++; idx < SCREENS.length ? renderQ() : renderResult(); window.scrollTo(0, 0); }
+
+function renderQ() {
+  const q = SCREENS[idx];
+  const cur = ans[q.id];
+  const pct = (idx / SCREENS.length) * 100;
+  const isStep = !!q.topic;
+  const t = q.topic;
+  let body;
+  if (isStep) {
+    const st = star[q.id];
+    body = `<div class="opts">${SC.map(o => `
+      <button class="opt ${cur === o.v ? "on" : ""}" data-v="${o.v}">
+        <span class="dot5" style="background:${dotColor(o.v)}"></span>
+        <span><span class="lbl">${o.l}</span><br><span class="sub">${o.s}</span></span>
+      </button>`).join("")}</div>
+      <button class="star ${st ? "on" : ""}" id="star" aria-pressed="${st ? "true" : "false"}">
+        <span class="star-ic">${st ? "★" : "☆"}</span>
+        <span>Можешь начинать, потихоньку.<br><span class="sub">Если будет странно или некомфортно, я скажу</span></span>
+      </button>`;
+  } else if (q.type === "multi") {
+    const sel = cur || [];
+    body = `<div class="opts">${q.opts.map((o, i) => `
+      <button class="opt multi ${sel.includes(o) ? "on" : ""}" data-i="${i}"><span class="box"></span><span class="lbl">${esc(o)}</span></button>`).join("")}</div>
+      <div class="row" style="margin-top:18px"><button class="btn" id="go">${idx === SCREENS.length - 1 ? "Показать результат" : "Дальше"}</button></div>`;
+  } else {
+    body = `<div class="opts">${q.opts.map(o => `
+      <button class="opt ${cur === o ? "on" : ""}" data-v="${esc(o)}"><span class="lbl">${esc(o)}</span></button>`).join("")}</div>`;
+  }
+  const eyebrow = isStep ? `${t.title} · ступенька ${q.i + 1} из ${t.steps.length}` : q.title + (q.type === "multi" ? " · можно несколько" : "");
+  app.replaceChildren(el(`
+    <section class="stack-lg">
+      <div class="stack">
+        <div class="qhead">
+          <button class="back" id="back">← Назад</button>
+          <span class="counter">${idx + 1} / ${SCREENS.length}</span>
+        </div>
+        <div class="progress"><i style="width:${pct}%"></i></div>
+      </div>
+      <div class="stack fade">
+        ${art(isStep ? t.icon : q.icon, "q-art")}
+        <span class="eyebrow">${esc(eyebrow)}</span>
+        <p class="qtext">${esc(q.text)}</p>
+        ${isStep && q.i === 0 && t.intro ? `<p class="qhint">${esc(t.intro)}</p>` : ""}
+        ${isStep && q.i === 0 && t.def ? `<p class="qdef"><b>Важно:</b> ${esc(t.def)}</p>` : ""}
+      </div>
+      <div class="fade">${body}</div>
+    </section>`));
+  document.getElementById("back").onclick = () => { if (idx === 0) { idx = -1; renderIntro(); } else { idx--; renderQ(); } };
+
+  if (q.type === "multi") {
+    app.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+      const o = q.opts[b.dataset.i], sel = new Set(ans[q.id] || []);
+      sel.has(o) ? sel.delete(o) : sel.add(o);
+      ans[q.id] = [...sel];
+      b.classList.toggle("on", sel.has(o));
+    });
+    document.getElementById("go").onclick = next;
+    return;
+  }
+  const s = document.getElementById("star");
+  if (s) s.onclick = () => {
+    star[q.id] = !star[q.id];
+    s.classList.toggle("on", star[q.id]);
+    s.setAttribute("aria-pressed", star[q.id] ? "true" : "false");
+    s.querySelector(".star-ic").textContent = star[q.id] ? "★" : "☆";
+  };
+  app.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+    ans[q.id] = b.dataset.v;
+    app.querySelectorAll(".opt").forEach(x => x.classList.toggle("on", x === b));
+    setTimeout(next, 220);
+  });
+}
+
+function renderResult() {
+  const stepAns = (t, i) => ans[`${t.id}.${i}`];
+  const topicCard = t => {
+    const go = t.steps.map((s, i) => ({ s, i, v: stepAns(t, i) }));
+    const ok = go.filter(x => x.v === "yes" || x.v === "try");
+    const first = ok[0], far = ok[ok.length - 1];
+    const later = go.filter(x => x.v === "notyet");
+    return `<div class="stack">
+      <div class="topic-head">${art(t.icon, "")}<div><h3>${t.title}</h3>
+        <span class="step-of">готова на ${ok.length} из ${t.steps.length} ступенек</span></div></div>
+      <div class="ladder">${go.map(x => `
+        <div class="rung"><span class="n">${x.i + 1}</span><span class="t">${esc(x.s)}${star[`${t.id}.${x.i}`] ? `<span class="st">★</span>` : ""}</span>
+        ${x.v ? `<span class="pill ${x.v}">${SHORT[x.v]}</span>` : `<span></span>`}</div>`).join("")}
+      </div>
+      ${first ? `<p class="first"><b>Начнём с:</b> ${esc(first.s.toLowerCase())}${far && far !== first ? `. <b>Самое смелое сейчас:</b> ${esc(far.s.toLowerCase())}` : ""}.</p>` : ""}
+      ${later.length ? `<p class="first" style="border-color:var(--notyet)"><b style="color:var(--notyet)">На потом:</b> ${later.map(x => esc(x.s.toLowerCase())).join("; ")}.</p>` : ""}
+    </div>`;
+  };
+  const all = TOPICS.flatMap(t => t.steps.map((s, i) => ({ s, t, v: stepAns(t, i), st: star[`${t.id}.${i}`] })));
+  const group = v => all.filter(x => x.v === v).map(x => `${x.t.title}: ${x.s.toLowerCase()}`);
+  const starred = all.filter(x => x.st && x.v !== "no").map(x => `${x.t.title}: ${x.s.toLowerCase()}`);
+  const li = arr => arr.length ? arr.map(x => `<li>${esc(x)}</li>`).join("") : `<li class="empty">пусто</li>`;
+  const chips = arr => `<div class="chips">${(arr || []).map(x => `<span class="chip">${esc(x)}</span>`).join("")}</div>`;
+  const G = [["yes", "Очень хочу"], ["try", "Попробуем"], ["maybe", "Возможно, это круто"], ["notyet", "Пока не готова"], ["no", "Нет"]];
+
+  app.replaceChildren(el(`
+    <section class="stack-lg fade">
+      <div class="hero-card stack">
+        ${art("crown", "arch-art")}
+        <span class="eyebrow">${NAME}, твоя карта глубже</span>
+        <div class="arch">Лесенки</div>
+        <p>По каждой теме видно, с чего начать и докуда ты готова сейчас. «Пока не готова» — это на потом, без спешки.</p>
+        <div class="legend">${SC.map(o => `<span class="pill ${o.v}">${o.l}</span>`).join("")}</div>
+      </div>
+
+      ${starred.length ? `<div class="callout">
+        <span class="eyebrow">★ Можешь начинать, потихоньку</span>
+        <h3>Если будет некомфортно, я скажу</h3>
+        <div class="chips">${starred.map(x => `<span class="chip star-chip">★ ${esc(x)}</span>`).join("")}</div>
+      </div>` : ""}
+
+      ${TOPICS.map(topicCard).join('<hr class="sep">')}
+
+      <hr class="sep">
+
+      ${ans.words?.length ? `<div class="stack"><h3>Что хочется слышать на ушко</h3>${chips(ans.words)}</div>` : ""}
+      ${ans.look?.length ? `<div class="stack"><h3>Образ для вечера</h3>${chips(ans.look)}</div>` : ""}
+      ${ans.afterWords?.length || ans.afterTalk ? `<div class="callout">
+        <span class="eyebrow">После</span>
+        ${ans.afterWords?.length ? `<p class="lead" style="font-size:15px">Что сказать тебе после:</p>${chips(ans.afterWords)}` : ""}
+        ${ans.afterTalk ? `<p class="lead" style="font-size:15px">Обсудить, как было: <b style="color:var(--fg)">${esc(ans.afterTalk.toLowerCase())}</b></p>` : ""}
+      </div>` : ""}
+
+      <div class="stack">
+        <h3>Всё вместе</h3>
+        <div class="groups">${G.map(([v, h]) => `<div class="g-${v}"><h4>${h}</h4><ul>${li(group(v))}</ul></div>`).join("")}</div>
+      </div>
+
+      <div class="row">
+        <button class="btn" id="copy">Скопировать и прислать мне</button>
+        <button class="btn-ghost" id="again">Пройти заново</button>
+        <span class="copied" id="copied" hidden>Скопировано, можно отправлять</span>
+      </div>
+      <p class="note">Ничего не нужно делать сразу. Начинаем с первых ступенек, а светофор работает всегда: «жёлтый» — помедленнее, «красный» — стоп.</p>
+      <textarea id="copytext" readonly hidden style="width:100%;min-height:160px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;font-size:14px"></textarea>
+    </section>`));
+
+  const text = [
+    "Мой результат «Карта желаний. Глубже»",
+    ...TOPICS.map(t => `${t.title}: ` + t.steps.map((s, i) => `${i + 1}) ${s.toLowerCase()} — ${SHORT[stepAns(t, i)] || "—"}${star[`${t.id}.${i}`] ? " ★" : ""}`).join("; ")),
+    starred.length ? `★ Можешь начинать, потихоньку: ${starred.join("; ")}` : "",
+    ans.words?.length ? `На ушко: ${ans.words.join(", ")}` : "",
+    ans.look?.length ? `Образ: ${ans.look.join(", ")}` : "",
+    ans.afterWords?.length ? `После сказать: ${ans.afterWords.join(", ")}` : "",
+    ans.afterTalk ? `Обсудить, как было: ${ans.afterTalk}` : ""
+  ].filter(Boolean).join("\n");
+
+  document.getElementById("copy").onclick = async () => {
+    const msg = document.getElementById("copied");
+    try { await navigator.clipboard.writeText(text); msg.hidden = false; }
+    catch (e) {
+      const ta = document.getElementById("copytext");
+      ta.value = text; ta.hidden = false; ta.focus(); ta.select();
+      msg.textContent = "Выдели текст ниже и скопируй"; msg.hidden = false;
+    }
+  };
+  document.getElementById("again").onclick = () => { ans = {}; star = {}; idx = -1; renderIntro(); window.scrollTo(0, 0); };
+  window.scrollTo(0, 0);
+}
+
+renderIntro();
+</script>
+</body>
+</html>
