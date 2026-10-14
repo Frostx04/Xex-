@@ -365,6 +365,7 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
 .capture .fade { animation: none; }
 .page { padding-block: 8px; }
 .chip { border-radius: 14px; }
+.quote { font-family: var(--display); font-style: italic; font-size: 22px; line-height: 1.3; margin: 0; }
 </style>
 
 <main class="wrap" id="app"></main>
@@ -384,85 +385,159 @@ const SCALE = [
   { v: 0, l: "Точно нет", s: "Не моё" }
 ];
 
+// s — шкала; короткое имя (short) показывается в результатах и сравнении
+const s = (id, sec, icon, short, text, def) => ({ id, sec, icon, type: "scale", short, text, def });
+
 const Q = [
-  // ритм
+  // ===== 1. основа =====
   { id: "want", sec: "Ритм", icon: "tender", type: "choice", text: "Как часто тебе хочется секса?", opts: FREQ },
   { id: "real", sec: "Ритм", icon: "tender", type: "choice", text: "А как часто реально получается сейчас?", opts: FREQ },
   { id: "when", sec: "Ритм", icon: "tender", type: "multi", text: "Когда хочется больше всего?", opts: ["Утром", "Днём", "Вечером", "Ночью", "Когда как"] },
   { id: "long", sec: "Ритм", icon: "tender", type: "choice", text: "Сколько по времени идеально?", opts: ["Быстро, минут 10–15", "Около получаса", "Час и больше", "Зависит от настроения"] },
   { id: "fore", sec: "Ритм", icon: "tender", type: "choice", text: "Сколько хочется прелюдии?", opts: ["Почти без неё", "Немного", "Долго", "Очень долго, это лучшая часть"] },
-  // инициатива
   { id: "initNow", sec: "Кто начинает", icon: "crown", type: "choice", text: "Кто у вас чаще начинает сейчас?", opts: ["Я", "Партнёр", "Примерно поровну"] },
   { id: "initWant", sec: "Кто начинает", icon: "crown", type: "choice", text: "А как хотелось бы?", opts: ["Чаще начинать мне", "Чтобы чаще начинал партнёр", "Поровну", "Без разницы"] },
-  { id: "initHow", sec: "Кто начинает", icon: "crown", type: "multi", text: "Как тебе нравится, когда начинают?", opts: ["С поцелуев", "С прикосновений", "Прямо сказать, что хочется", "Намёками в переписке днём", "Внезапно, без предупреждения", "Взглядом"] },
+  { id: "initHow", sec: "Кто начинает", icon: "crown", type: "multi", text: "Как тебе нравится, когда начинают?", opts: ["С поцелуев", "С прикосновений", "Прямо сказать, что хочется", "Намёками в переписке днём", "Внезапно, без предупреждения", "Взглядом", "Раздеть без слов"] },
   { id: "noHow", sec: "Кто начинает", icon: "crown", type: "choice", text: "Как тебе проще сказать «не сегодня»?", opts: ["Прямо словами", "Нежно, с обещанием на завтра", "Хочу, чтобы партнёр сам почувствовал", "Пока сложно говорить «нет»"] },
   { id: "noFeel", sec: "Кто начинает", icon: "crown", type: "choice", text: "Если партнёр говорит «не сегодня», тебе…", opts: ["Нормально, бывает", "Немного обидно, но понимаю", "Обидно, но молчу", "Хочется поговорить об этом"] },
-  // это или то
+  { id: "talkEase", sec: "Кто начинает", icon: "words", type: "choice", text: "Насколько легко вам говорить о сексе?", opts: ["Легко, обсуждаем всё", "Нормально, но не обо всём", "Неловко", "Почти не говорим"] },
+  { id: "orgFreq", sec: "Оргазм", icon: "lock", type: "choice", text: "Как часто у тебя бывает оргазм в сексе с партнёром?", opts: ["Почти всегда", "Часто", "Иногда", "Редко", "Пока не бывает"] },
+  { id: "orgHelp", sec: "Оргазм", icon: "lock", type: "multi", text: "Что помогает тебе кончить?", opts: ["Оральные ласки", "Пальцы", "Игрушка", "Определённая поза", "Долгая прелюдия", "Откровенные слова", ["Ласкать себя самой", "Ласкать себя самому"], "Не знаю пока"] },
+  { id: "orgTogether", sec: "Оргазм", icon: "lock", type: "choice", text: "Кончать вместе для тебя…", opts: ["Очень важно", "Приятно, но не обязательно", "Без разницы", "Лучше по очереди"] },
+  { id: "poses", sec: "Позы", icon: "adv", type: "multi", text: "Любимые позы?", opts: ["Классика лицом к лицу", "Она сверху", "Сзади", "Ложечка, на боку", "Стоя", "Сидя, лицом друг к другу", "Она сверху спиной", "Ноги на плечах"] },
   { id: "p1", sec: "Это или то", icon: "words", type: "pick", text: "Что ближе?", opts: ["Нежно и медленно", "Страстно и быстро"] },
   { id: "p2", sec: "Это или то", icon: "words", type: "pick", text: "Что ближе?", opts: ["Спонтанно", "Заранее предвкушать"] },
   { id: "p3", sec: "Это или то", icon: "words", type: "pick", text: "Свет или темнота?", opts: ["Свет, хочу видеть", "Полумрак"] },
   { id: "p4", sec: "Это или то", icon: "words", type: "pick", text: "Тишина или слова?", opts: ["Молча, только дыхание", "Говорить, что нравится"] },
-  { id: "p5", sec: "Это или то", icon: "words", type: "pick", text: "Кто ведёт?", opts: [["Чтобы вели меня", "Чтобы вели меня"], ["Вести самой", "Вести самому"]] },
-  // хочется попробовать
-  { id: "kiss", sec: "Что хочется", icon: "words", type: "scale", short: "Долгие поцелуи", text: "Долгие поцелуи, просто так, без продолжения" },
-  { id: "massage", sec: "Что хочется", icon: "tender", type: "scale", short: "Массаж", text: "Массаж с маслом, который плавно переходит в секс" },
-  { id: "morning", sec: "Что хочется", icon: "tender", type: "scale", short: "Секс утром", text: "Секс утром, пока оба ещё сонные" },
-  { id: "quick", sec: "Что хочется", icon: "adv", type: "scale", short: "Быстро и внезапно", text: "Быстрый секс без прелюдии, внезапно посреди дня" },
-  { id: "poses", sec: "Что хочется", icon: "adv", type: "scale", short: "Новые позы", text: "Пробовать новые позы" },
-  { id: "place", sec: "Что хочется", icon: "adv", type: "scale", short: "Не в спальне", text: "Не в спальне: душ, кухня, диван" },
-  { id: "shower", sec: "Что хочется", icon: "tender", type: "scale", short: "Душ или ванна вместе", text: "Душ или ванна вместе" },
-  { id: "trip", sec: "Что хочется", icon: "adv", type: "scale", short: "Ночь в отеле", text: "Ночь в отеле или в поездке, просто чтобы сменить обстановку" },
-  { id: "oralGet", sec: "Что хочется", icon: "words", type: "scale", short: "Оральные ласки тебе", text: "Когда тебя ласкают ртом" },
-  { id: "oralGive", sec: "Что хочется", icon: "words", type: "scale", short: "Оральные ласки партнёру", text: "Ласкать партнёра ртом" },
-  { id: "lingerie", sec: "Что хочется", icon: "play", type: "scale", short: "Красивое бельё", text: ["Надеть красивое бельё специально для партнёра", "Когда партнёрша в красивом белье специально для тебя"] },
-  { id: "toys", sec: "Что хочется", icon: "phone", type: "scale", short: "Игрушки", text: "Игрушки для пары" },
-  { id: "mirror", sec: "Что хочется", icon: "senses", type: "scale", short: "Зеркало", text: "Зеркало, чтобы видеть себя со стороны" },
-  { id: "blind", sec: "Что хочется", icon: "blindfold", type: "scale", short: "Повязка на глаза", text: "Повязка на глаза: не видеть, что будет дальше" },
-  { id: "talk", sec: "Что хочется", icon: "words", type: "scale", short: "Слова в процессе", text: "Говорить и слышать откровенные слова в процессе" },
-  { id: "sext", sec: "Что хочется", icon: "phone", type: "scale", short: "Переписка с намёками", text: "Переписка с намёками днём, чтобы к вечеру уже хотелось" },
-  { id: "photos", sec: "Что хочется", icon: "camera", type: "scale", short: "Откровенные фото", text: "Откровенные фото только друг для друга" },
-  { id: "fantasy", sec: "Что хочется", icon: "words", type: "scale", short: "Рассказать фантазии", text: "Рассказать друг другу фантазии, честно" },
-  { id: "porn", sec: "Что хочется", icon: "phone", type: "scale", short: "Эротика вместе", text: "Смотреть вместе эротику или порно" },
-  { id: "roleplay", sec: "Что хочется", icon: "play", type: "scale", short: "Ролевая игра", text: "Ролевая игра: незнакомцы, которые только что встретились" },
-  // чуть острее
-  { id: "lead", sec: "Чуть острее", icon: "collar", type: "scale", short: "Партнёр берёт всё в свои руки", text: "Когда партнёр уверенно берёт всё в свои руки" },
-  { id: "tied", sec: "Чуть острее", icon: "cuffs", type: "scale", short: "Лёгкая фиксация рук", text: "Лёгкая фиксация рук шарфом или галстуком" },
-  { id: "spank", sec: "Чуть острее", icon: "belt", type: "scale", short: "Шлепки", text: "Игривые шлепки в процессе" },
-  { id: "rough", sec: "Чуть острее", icon: "pain", type: "scale", short: "Чуть грубее", text: "Чуть грубее и страстнее, чем обычно" },
-  { id: "hair", sec: "Чуть острее", icon: "pain", type: "scale", short: "За волосы", text: "Держать или тянуть за волосы в процессе" },
-  { id: "video", sec: "Чуть острее", icon: "camera", type: "scale", short: "Снять себя на видео", text: "Снять себя на видео, только для вас двоих" },
-  // после
-  { id: "after", sec: "После", icon: "tender", type: "multi", text: "Что тебе нравится после?", opts: ["Обниматься", "Разговаривать", "Сразу засыпать", "В душ", "Перекусить", ["Немного побыть одной", "Немного побыть одному"]] },
-  // открытые
+  { id: "p5", sec: "Это или то", icon: "words", type: "pick", text: "Кто ведёт?", opts: ["Чтобы вели меня", ["Вести самой", "Вести самому"]] },
+  { id: "p6", sec: "Это или то", icon: "words", type: "pick", text: "Громко или тихо?", opts: ["Не сдерживаться", "Тихо, шёпотом"] },
+  s("kiss", "Нежность", "words", "Долгие поцелуи", "Долгие поцелуи, просто так, без продолжения"),
+  s("massage", "Нежность", "tender", "Массаж", "Массаж с маслом, который плавно переходит в секс"),
+  s("candles", "Нежность", "tender", "Свечи и музыка", "Секс при свечах и музыке, как свидание"),
+  s("petting", "Нежность", "tender", "Ласки без секса", "Ласкать друг друга без секса, просто трогать"),
+  s("slow", "Нежность", "tender", "Медленный секс", "Очень медленный секс, без цели кончить"),
+  s("morning", "Нежность", "tender", "Секс утром", "Секс утром, пока оба ещё сонные"),
+  s("marathon", "Нежность", "tender", "Марафон", "Целый выходной почти не вылезать из постели"),
+  s("shower", "Нежность", "tender", "Душ или ванна вместе", "Душ или ванна вместе"),
+  s("quick", "Формат", "adv", "Быстро и внезапно", "Быстрый секс без прелюдии, внезапно посреди дня"),
+  s("newPoses", "Формат", "adv", "Новые позы", "Пробовать новые позы"),
+  s("place", "Формат", "adv", "Не в спальне", "Не в спальне: душ, кухня, диван, стол"),
+  s("trip", "Формат", "adv", "Отель или поездка", "Ночь в отеле или в поездке, чтобы сменить обстановку"),
+  s("clothes", "Формат", "adv", "Не раздеваясь до конца", "Не раздеваясь до конца, в одежде"),
+  s("mirror", "Формат", "senses", "Зеркало", "Зеркало, чтобы видеть себя со стороны"),
+  s("oralGet", "Оральные ласки", "words", "Оральные ласки тебе", "Когда тебя ласкают ртом"),
+  s("oralGive", "Оральные ласки", "words", "Оральные ласки партнёру", "Ласкать партнёра ртом"),
+  s("sixty", "Оральные ласки", "words", "69", "69: ласкать друг друга ртом одновременно", "69 — поза, где оба одновременно ласкают друг друга ртом."),
+  s("oralLong", "Оральные ласки", "words", "Оральные ласки до оргазма", "Оральные ласки до самого конца, до оргазма"),
+  s("cumMouth", "Оральные ласки", "words", "Кончить в рот", ["Когда он кончает тебе в рот", "Кончить ей в рот"]),
+  s("lingerie", "Образ", "play", "Красивое бельё", ["Надеть красивое бельё специально для партнёра", "Когда она в красивом белье специально для тебя"]),
+  s("stockings", "Образ", "play", "Чулки", ["Чулки и пояс для него", "Когда она в чулках"]),
+  s("noUnder", "Образ", "play", "Без белья", ["Без белья под платьем, и он об этом знает", "Знать, что она без белья под платьем"]),
+  s("shirt", "Образ", "play", "Его рубашка", ["Его рубашка на голое тело", "Она в твоей рубашке на голое тело"]),
+  s("talk", "Слова", "words", "Слова в процессе", "Говорить и слышать откровенные слова в процессе"),
+  s("sext", "Слова", "phone", "Переписка с намёками", "Переписка с намёками днём, чтобы к вечеру уже хотелось"),
+  s("fantasy", "Слова", "words", "Рассказать фантазии", "Рассказать друг другу фантазии, честно"),
+  s("compliments", "Слова", "words", "Комплименты в процессе", "Слышать в процессе, какой ты красивый(ая) и как тебя хотят"),
+  // ===== 2. смелее =====
+  { id: "g1", type: "gate", sec: "Смелее", icon: "adv", text: "Дальше чуть смелее: игрушки, фото, ролевые, игры. Продолжаем?", go: "Да, давай", skip: "Пропустить" },
+  s("toys", "Игрушки", "phone", "Игрушки для пары", "Игрушки для пары"),
+  s("vibeSex", "Игрушки", "phone", "Вибратор во время секса", "Вибратор во время секса"),
+  s("remote", "Игрушки", "phone", "Игрушка с пультом", ["Игрушка с пультом, который у него, хоть из другого города", "Пульт от её игрушки у тебя, хоть из другого города"]),
+  s("masturbShow", "Игрушки", "camera", "Ласкать себя при партнёре", "Ласкать себя, пока партнёр смотрит"),
+  s("masturbWatch", "Игрушки", "camera", "Смотреть, как партнёр ласкает себя", "Смотреть, как партнёр ласкает себя"),
+  s("photos", "Фото и видео", "camera", "Откровенные фото", "Откровенные фото только друг для друга"),
+  s("videoCall", "Фото и видео", "camera", "Откровенный видеозвонок", "Откровенный видеозвонок, когда вы далеко"),
+  s("video", "Фото и видео", "camera", "Снять себя на видео", "Снять себя на видео, только для вас двоих"),
+  s("porn", "Фото и видео", "phone", "Порно вместе", "Смотреть вместе эротику или порно и повторять сцены"),
+  s("blind", "Ощущения", "blindfold", "Повязка на глаза", "Повязка на глаза: не видеть, что будет дальше"),
+  s("ice", "Ощущения", "wax", "Лёд и тепло", "Контрасты: кубик льда, тёплое дыхание, тёплое масло"),
+  s("feather", "Ощущения", "senses", "Перо и шёлк", "Пёрышко, шёлк, лёгкие прикосновения по всему телу"),
+  s("bite", "Ощущения", "lips", "Укусы и засосы", "Укусы и засосы"),
+  s("strip", "Игра", "play", "Стриптиз", ["Станцевать для него стриптиз", "Когда она танцует для тебя стриптиз"]),
+  s("roleplay", "Игра", "play", "Ролевая: незнакомцы", "Ролевая игра: незнакомцы, которые только что встретились"),
+  s("roleplay2", "Игра", "play", "Ролевая: доктор, учитель, начальник", "Ролевые с образами: доктор, преподаватель, начальник"),
+  s("games", "Игра", "play", "Игры с заданиями", "Игры: кубики, карты с заданиями, фанты на раздевание"),
+  s("cumBody", "Игра", "words", "Кончить на тело", ["Когда он кончает тебе на тело", "Кончить на её тело"]),
+  s("tied", "Игра", "cuffs", "Лёгкая фиксация рук", "Лёгкая фиксация рук шарфом или галстуком"),
+  s("spank", "Игра", "belt", "Игривые шлепки", "Игривые шлепки в процессе"),
+  s("rough", "Игра", "pain", "Чуть грубее", "Чуть грубее и страстнее, чем обычно"),
+  s("hair", "Игра", "pain", "За волосы", "Держать или тянуть за волосы в процессе"),
+  // ===== 3. власть =====
+  { id: "g2", type: "gate", sec: "Власть и BDSM", icon: "collar", text: "Дальше игра во власть: подчинение, связывание, боль, ритуалы. Только по желанию. Продолжаем?", go: "Да, интересно", skip: "Пропустить" },
+  { id: "domRole", sec: "Власть и BDSM", icon: "crown", type: "choice", text: "В игре во власть тебе ближе…", opts: ["Подчиняться", "Вести и командовать", "И то и другое, по очереди", "Пока не знаю"] },
+  s("orders", "Власть и BDSM", "crown", "Приказы и подчинение", "Приказы и подчинение в процессе", "Один командует, другой слушается. Всё по договорённости, со стоп-словом."),
+  s("goodGirl", "Власть и BDSM", "words", "Похвала: «хорошая девочка / хороший мальчик»", "Похвала в процессе: «хорошая девочка», «хороший мальчик»"),
+  s("knees", "Власть и BDSM", "collar", "На коленях", "На коленях перед партнёром"),
+  s("collar", "Власть и BDSM", "collar", "Ошейник и поводок", "Ошейник и поводок в игре"),
+  s("ropes", "Власть и BDSM", "rope", "Верёвки и наручники", "Связывание верёвками или наручниками", "Рядом всегда ножницы, узлы не на суставах, руки проверяют каждые 10–15 минут."),
+  s("helpless", "Власть и BDSM", "gag", "Полная беспомощность", "Полная беспомощность: связан(а), в повязке, может быть с кляпом", "С кляпом нельзя сказать стоп-слово, поэтому договариваются о жесте: например, уронить мячик из руки."),
+  s("spreader", "Власть и BDSM", "cuffs", "Распорка", "Распорка: ноги или руки разведены, свести нельзя", "Распорка — палка с манжетами на концах, держит руки или ноги разведёнными."),
+  s("impact", "Власть и BDSM", "belt", "Ремень, стек, флоггер", "Удары ремнём, стеком или флоггером", "Стек — короткий жёсткий хлыст с кожаным язычком. Флоггер — плётка с множеством мягких хвостов. Бьют по ягодицам и бёдрам, не по пояснице."),
+  s("marks", "Власть и BDSM", "belt", "Следы на коже", "Следы от ударов или укусов, которые видно несколько дней"),
+  s("clamps", "Власть и BDSM", "clamps", "Зажимы", "Зажимы на соски", "Маленькие прищепки, часто на цепочке. Держат не дольше 15–20 минут."),
+  s("wax", "Власть и BDSM", "wax", "Горячий воск", "Горячий воск на коже", "Только специальные свечи с низкой температурой: обычные оставляют ожоги."),
+  s("edging", "Власть и BDSM", "lock", "Эджинг", "Доводить до края и не давать кончить, снова и снова", "Эджинг — остановиться почти на оргазме и начать снова. Финал потом намного сильнее."),
+  s("denial", "Власть и BDSM", "lock", "Запрет кончать", "Запрет кончать несколько дней, пока партнёр не разрешит"),
+  s("forced", "Власть и BDSM", "lock", "Кончать без остановки", "Кончать снова и снова, пока не попросишь остановиться"),
+  s("command", "Власть и BDSM", "lock", "Оргазм по команде", "Кончать только по команде партнёра"),
+  s("pet", "Власть и BDSM", "ears", "Пет-плей", "Пет-плей: ушки, ошейник, кошечка или щенок", "Ролевая игра, где один из партнёров — питомец: команды, ласка, награды."),
+  s("degrade", "Власть и BDSM", "words", "Грязные прозвища", "Грязные прозвища и унизительные слова в процессе", "Дегрейдинг. Это игра: слова только те, о которых договорились, остальные под запретом."),
+  s("cnc", "Власть и BDSM", "rope", "Игра в сопротивление", "Игра в сопротивление: «нет» в игре — часть сценария", "CNC (consensual non-consent). Всё обговорено заранее, остановить может только стоп-слово."),
+  s("neck", "Власть и BDSM", "collar", "Рука на шее", "Рука на шее, без давления: только держать", "Только держать, не сжимать: по бокам шеи сонные артерии, давить нельзя."),
+  s("scruff", "Власть и BDSM", "collar", "За загривок", "Держать за загривок и вести"),
+  s("facesit", "Власть и BDSM", "crown", "Сесть на лицо", ["Сесть ему на лицо", "Когда она садится тебе на лицо"], "Фейсситтинг — когда партнёр садится на лицо и сам управляет процессом."),
+  s("contract", "Власть и BDSM", "contract", "Контракт подчинения", "Контракт: правила, обращения, наказания на неделю", "Письменная договорённость о правилах игры. Разорвать можно в любой момент."),
+  s("ritual", "Власть и BDSM", "crown", "Ритуалы и обращения", "Ритуалы: обращение «Господин / Госпожа», встречать на коленях, благодарить"),
+  s("spit", "Власть и BDSM", "words", "Плевки", "Плевки: в рот или на тело"),
+  s("slaps", "Власть и BDSM", "pain", "Лёгкие пощёчины", "Лёгкие пощёчины", "Только открытой ладонью по щеке, никогда по уху, носу и подбородку."),
+  // ===== 4. анал =====
+  { id: "g3", type: "gate", sec: "Анал", icon: "lock", text: "Дальше отдельный блок про анальные ласки и секс, в обе стороны. Открыть его?", go: "Да, открыть", skip: "Пропустить" },
+  { id: "analExp", sec: "Анал", icon: "lock", type: "choice", text: "Твой опыт анальных ласк или секса", opts: ["Был, и нравится", "Был, но не понравилось", "Не было, но интересно", "Не было и не хочется"] },
+  s("aHerFinger", "Анал: для неё", "lock", "Анальные ласки ей пальцами", ["Анальные ласки тебе пальцами", "Ласкать её анально пальцами"], "Важно: много лубриканта, очень медленно, короткие ногти. После анала — не переходить к вагине без мытья или смены презерватива."),
+  s("aHerRim", "Анал: для неё", "lips", "Римминг ей", ["Римминг тебе: ласки языком", "Римминг ей: ласкать языком"], "Римминг — ласки ануса языком. Нужна гигиена до."),
+  s("aHerPlug", "Анал: для неё", "lock", "Пробка для неё", ["Анальная пробка на тебе", "Анальная пробка на ней"], "Пробка обязательно с широким основанием, начинают с самой маленькой."),
+  s("aHerTail", "Анал: для неё", "ears", "Пробка с хвостиком", ["Пробка с хвостиком в пет-плее", "Пробка с хвостиком на ней в пет-плее"]),
+  s("aHerSex", "Анал: для неё", "lock", "Анальный секс с ней", ["Анальный секс", "Анальный секс с ней"], "Нужны лубрикант, расслабление и время. Начинают с пальцев или пробки. Боль — сигнал остановиться."),
+  s("aHerDP", "Анал: для неё", "lock", "Двойное проникновение с игрушкой", ["Двойное проникновение: он и игрушка", "Двойное проникновение: ты и игрушка"]),
+  s("aHimFinger", "Анал: для него", "lock", "Анальные ласки ему", ["Ласкать его анально пальцами", "Анальные ласки тебе пальцами"]),
+  s("aHimProst", "Анал: для него", "lock", "Массаж простаты", ["Массаж простаты ему", "Массаж простаты тебе"], "Простата — точка у мужчин примерно в 5 см внутри, к животу. Её стимуляция даёт очень сильный оргазм."),
+  s("aHimRim", "Анал: для него", "lips", "Римминг ему", ["Римминг ему", "Римминг тебе"]),
+  s("aHimToy", "Анал: для него", "lock", "Игрушка для него", ["Анальная игрушка для него", "Анальная игрушка для тебя"]),
+  s("aHimPeg", "Анал: для него", "lock", "Пеггинг", ["Пеггинг: ты со страпоном", "Пеггинг: она со страпоном"], "Пеггинг — когда девушка со страпоном проникает в партнёра анально."),
+  // ===== 5. честно =====
+  { id: "after", sec: "После", icon: "tender", type: "multi", text: "Что тебе нравится после?", opts: ["Обниматься", "Разговаривать", "Сразу засыпать", "В душ", "Перекусить", "Слышать, что всё было классно", ["Немного побыть одной", "Немного побыть одному"]] },
   { id: "rate", sec: "Честно", icon: "contract", type: "rate", text: "Насколько тебе сейчас хорошо в вашем сексе? От 1 до 10" },
   { id: "best", sec: "Честно", icon: "contract", type: "text", text: "Что тебе больше всего нравится в вашем сексе?", ph: "Например: как ты целуешь…" },
-  { id: "more", sec: "Честно", icon: "contract", type: "text", text: "Чего хотелось бы больше?", ph: "Можно пропустить" }
+  { id: "more", sec: "Честно", icon: "contract", type: "text", text: "Чего хотелось бы больше?", ph: "Можно пропустить" },
+  { id: "secret", sec: "Честно", icon: "contract", type: "text", text: "Одна фантазия, о которой ты ещё не говорил(а)", ph: "Партнёр увидит это в сравнении. Можно пропустить" }
 ];
+Q.find(q => q.id === "secret").text = ["Одна фантазия, о которой ты ещё не говорила", "Одна фантазия, о которой ты ещё не говорил"];
+Q.find(q => q.id === "compliments").text = ["Слышать в процессе, какая ты красивая и как тебя хотят", "Слышать в процессе, как тебя хотят"];
+Q.find(q => q.id === "helpless").text = "Полная беспомощность в игре: связать, повязка, может быть кляп";
 
+const REAL = Q.filter(q => q.type !== "gate");
+const SCALEQ = Q.filter(q => q.type === "scale");
 const app = document.getElementById("app");
-let ans = {}, idx = -1;
+let ans = {}, star = {}, idx = -1;
 
 function el(html) { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content; }
-function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
-function art(id, cls) { return `<svg class="ill ${cls}" viewBox="0 0 120 70" aria-hidden="true"><use href="#i-${id}"/></svg>`; }
+function esc(x) { return String(x).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function art(id, cls) { return `<svg class="ill ${cls}" viewBox="0 0 120 70" aria-hidden="true"><use href="#i-${id === "lips" ? "words" : id}"/></svg>`; }
 const optText = (q, i) => { const o = q.opts[i]; return Array.isArray(o) ? R(o) : o; };
+const blockOf = q => { let b = 0; for (const x of Q) { if (x.type === "gate") b++; if (x === q) return b; } return b; };
 
 // ---------- экраны ----------
 function renderIntro() {
   app.replaceChildren(el(`
     <section class="stack-lg fade">
-      <div class="hero-art">
-        <div class="glow"></div>
-        ${art("tender", "side side-l")}
-        ${art("adv", "side side-r")}
-        ${art("words", "main")}
-      </div>
+      <div class="hero-art"><div class="glow"></div>${art("tender", "side side-l")}${art("adv", "side side-r")}${art("words", "main")}</div>
       <div class="stack">
         <span class="eyebrow">Тест для пары</span>
         <h1>Мы вдвоём</h1>
-        <p class="lead">Про ваш секс: как часто хочется, кто начинает, что нравится и что хочется попробовать. Каждый проходит сам, потом сравниваете ответы по ссылке и видите, где совпали.</p>
+        <p class="lead">Про ваш секс: как часто хочется, кто начинает, что нравится и что хочется попробовать. Каждый проходит сам, потом вы сравниваете ответы по ссылке и видите только то, где совпали.</p>
       </div>
-      <div class="facts"><span><b>${Q.length}</b> вопросов</span><span><b>~7</b> минут</span><span>без жёсти</span></div>
+      <div class="facts"><span><b>${REAL.length}</b> вопросов</span><span><b>5</b> блоков</span><span>смелые блоки по желанию</span></div>
+      <p class="note">Сначала основа. Дальше три блока, каждый можно пропустить: «Смелее», «Власть и BDSM», «Анал». Звёздочка ★ у вопроса значит «хочу, но стесняюсь предложить».</p>
       <div class="stack">
         <span class="eyebrow">Кто проходит?</span>
         <div class="role">
@@ -470,22 +545,32 @@ function renderIntro() {
           <button class="opt" data-r="m"><span class="lbl">Я парень</span></button>
         </div>
       </div>
-      <p class="note">Ответы никуда не отправляются. Их увидит только тот, кому ты сам${""} отправишь ссылку.</p>
+      <p class="note">Ответы никуда не отправляются. Их увидит только тот, кому ты отправишь ссылку.</p>
     </section>`));
   app.querySelectorAll(".role .opt").forEach(b => b.onclick = () => { role = b.dataset.r; idx = 0; renderQ(); });
-  // «сам» без рода
-  app.querySelector(".note").textContent = "Ответы никуда не отправляются. Их увидит только тот, кому ты отправишь ссылку.";
 }
 
 function next() { idx++; idx < Q.length ? renderQ() : renderResult(); window.scrollTo(0, 0); }
+function skipBlock() {
+  // пропустить блок: стереть его ответы и перейти к следующим воротам или к «После»
+  let j = idx + 1;
+  while (j < Q.length && Q[j].type !== "gate" && Q[j].sec !== "После") { delete ans[Q[j].id]; delete star[Q[j].id]; j++; }
+  idx = j; idx < Q.length ? renderQ() : renderResult(); window.scrollTo(0, 0);
+}
 
 function renderQ() {
   const q = Q[idx], cur = ans[q.id];
+  const num = Q.slice(0, idx + 1).filter(x => x.type !== "gate").length;
   let body;
-  if (q.type === "scale") {
+  if (q.type === "gate") {
+    body = `<div class="pick"><button class="opt" data-g="go"><span class="lbl">${q.go}</span></button><button class="opt" data-g="skip"><span class="lbl">${q.skip}</span></button></div>`;
+  } else if (q.type === "scale") {
+    const st = star[q.id];
     body = `<div class="opts">${SCALE.map(o => `<button class="opt ${cur === o.v ? "on" : ""}" data-v="${o.v}">
       <span class="dots">${[0, 1, 2, 3].map(i => `<i class="${i < o.v ? "f" : ""}"></i>`).join("")}</span>
-      <span><span class="lbl">${o.l}</span><br><span class="sub">${R(o.s)}</span></span></button>`).join("")}</div>`;
+      <span><span class="lbl">${o.l}</span><br><span class="sub">${R(o.s)}</span></span></button>`).join("")}</div>
+      <button class="star ${st ? "on" : ""}" id="star" aria-pressed="${st ? "true" : "false"}"><span class="star-ic">${st ? "★" : "☆"}</span>
+        <span>Хочу, но стесняюсь предложить<br><span class="sub">В сравнении покажем, только если партнёру тоже интересно</span></span></button>`;
   } else if (q.type === "choice") {
     body = `<div class="opts">${q.opts.map((o, i) => `<button class="opt ${cur === i ? "on" : ""}" data-v="${i}"><span class="lbl">${esc(optText(q, i))}</span></button>`).join("")}</div>`;
   } else if (q.type === "pick") {
@@ -503,22 +588,27 @@ function renderQ() {
   app.replaceChildren(el(`
     <section class="stack-lg">
       <div class="stack">
-        <div class="qhead"><button class="back" id="back">← Назад</button><span class="counter">${idx + 1} / ${Q.length}</span></div>
-        <div class="progress"><i style="width:${idx / Q.length * 100}%"></i></div>
+        <div class="qhead"><button class="back" id="back">← Назад</button><span class="counter">${q.type === "gate" ? "Новый блок" : `${num} / ${REAL.length}`}</span></div>
+        <div class="progress"><i style="width:${num / REAL.length * 100}%"></i></div>
       </div>
       <div class="stack fade">
         ${art(q.icon, "q-art")}
         <span class="eyebrow">${esc(q.sec)}${q.type === "multi" ? " · можно несколько" : ""}</span>
         <p class="qtext">${esc(R(q.text))}</p>
+        ${q.def ? `<p class="qdef"><b>Что это:</b> ${esc(q.def)}</p>` : ""}
       </div>
       <div class="fade">${body}</div>
     </section>`));
   document.getElementById("back").onclick = () => { if (idx === 0) { idx = -1; renderIntro(); } else { idx--; renderQ(); } };
+  if (q.type === "gate") {
+    app.querySelectorAll(".opt").forEach(b => b.onclick = () => { ans[q.id] = b.dataset.g; b.dataset.g === "go" ? next() : skipBlock(); });
+    return;
+  }
   if (q.type === "multi") {
     app.querySelectorAll(".opt").forEach(b => b.onclick = () => {
       const i = +b.dataset.i, sel = new Set(ans[q.id] || []);
       sel.has(i) ? sel.delete(i) : sel.add(i);
-      ans[q.id] = [...sel].sort((a, b) => a - b); b.classList.toggle("on", sel.has(i));
+      ans[q.id] = [...sel].sort((a, c) => a - c); b.classList.toggle("on", sel.has(i));
     });
     document.getElementById("go").onclick = next; return;
   }
@@ -527,6 +617,12 @@ function renderQ() {
     document.getElementById("go").onclick = () => { const v = ta.value.trim(); if (v) ans[q.id] = v; else delete ans[q.id]; next(); };
     return;
   }
+  const stb = document.getElementById("star");
+  if (stb) stb.onclick = () => {
+    star[q.id] = !star[q.id]; if (!star[q.id]) delete star[q.id];
+    stb.classList.toggle("on", !!star[q.id]); stb.setAttribute("aria-pressed", star[q.id] ? "true" : "false");
+    stb.querySelector(".star-ic").textContent = star[q.id] ? "★" : "☆";
+  };
   app.querySelectorAll(".opt").forEach(b => b.onclick = () => {
     ans[q.id] = +b.dataset.v;
     app.querySelectorAll(".opt").forEach(x => x.classList.toggle("on", x === b));
@@ -537,31 +633,35 @@ function renderQ() {
 // ---------- ссылка ----------
 function enc(o) { const by = new TextEncoder().encode(JSON.stringify(o)); return btoa(String.fromCharCode(...by)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
 function dec(c) { const bin = atob(c.replace(/-/g, "+").replace(/_/g, "/")); return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, ch => ch.charCodeAt(0)))); }
-const myLink = () => location.href.split("#")[0] + "#r=" + enc({ r: role, a: ans });
-function parseLink(s) { const m = String(s).match(/#r=([A-Za-z0-9_-]+)/); if (!m) return null; try { const o = dec(m[1]); return o && o.a ? o : null; } catch (e) { return null; } }
+const myLink = () => location.href.split("#")[0] + "#r=" + enc({ r: role, a: ans, s: Object.keys(star) });
+function parseLink(x) { const m = String(x).match(/#r=([A-Za-z0-9_-]+)/); if (!m) return null; try { const o = dec(m[1]); return o && o.a ? o : null; } catch (e) { return null; } }
 
-// ---------- результат одного ----------
+// ---------- сводка одного человека ----------
+const QQ = id => Q.find(q => q.id === id);
+function withRole(r, fn) { const prev = role; role = r; try { return fn(); } finally { role = prev; } }
 function summary(o) {
-  const QQ = id => Q.find(q => q.id === id);
-  const prev = role; role = o.r;
-  const a = o.a, ch = (id) => a[id] !== undefined ? optText(QQ(id), a[id]) : "—";
-  const multi = id => (a[id] || []).map(i => optText(QQ(id), i));
-  const scale = Q.filter(q => q.type === "scale");
-  const out = {
-    want: ch("want"), real: ch("real"), when: multi("when"), long: ch("long"), fore: ch("fore"),
-    initNow: ch("initNow"), initWant: ch("initWant"), initHow: multi("initHow"), noHow: ch("noHow"), noFeel: ch("noFeel"),
-    picks: Q.filter(q => q.type === "pick").map(q => a[q.id] !== undefined ? optText(q, a[q.id]) : null).filter(Boolean),
-    yes: scale.filter(q => a[q.id] === 4).map(q => q.short), like: scale.filter(q => a[q.id] === 3).map(q => q.short),
-    no: scale.filter(q => a[q.id] !== undefined && a[q.id] <= 1).map(q => q.short),
-    after: multi("after"), rate: a.rate, best: a.best, more: a.more
-  };
-  role = prev;
-  return out;
+  return withRole(o.r, () => {
+    const a = o.a, ch = id => a[id] !== undefined ? optText(QQ(id), a[id]) : "—";
+    const multi = id => (a[id] || []).map(i => optText(QQ(id), i));
+    const by = f => SCALEQ.filter(q => a[q.id] !== undefined && f(a[q.id])).map(q => q.short);
+    return {
+      want: ch("want"), real: ch("real"), when: multi("when"), long: ch("long"), fore: ch("fore"),
+      initNow: ch("initNow"), initWant: ch("initWant"), initHow: multi("initHow"), noHow: ch("noHow"), noFeel: ch("noFeel"), talkEase: ch("talkEase"),
+      orgFreq: ch("orgFreq"), orgHelp: multi("orgHelp"), orgTogether: ch("orgTogether"), poses: multi("poses"),
+      domRole: ch("domRole"), analExp: ch("analExp"),
+      picks: Q.filter(q => q.type === "pick" && a[q.id] !== undefined).map(q => optText(q, a[q.id])),
+      yes: by(v => v === 4), like: by(v => v === 3), no: by(v => v <= 1),
+      stars: SCALEQ.filter(q => (o.s || []).includes(q.id) && a[q.id] >= 1).map(q => q.short),
+      after: multi("after"), rate: a.rate, best: a.best, more: a.more, secret: a.secret,
+      skipped: ["g1", "g2", "g3"].filter(g => a[g] === "skip").map(g => QQ(g).sec)
+    };
+  });
 }
-const chips = arr => arr.length ? `<div class="chips">${arr.map(x => `<span class="chip">${esc(x)}</span>`).join("")}</div>` : `<p class="note">пусто</p>`;
+const chips = (arr, cls = "") => arr.length ? `<div class="chips">${arr.map(x => `<span class="chip ${cls}">${cls ? "★ " : ""}${esc(x)}</span>`).join("")}</div>` : `<p class="note">пусто</p>`;
+const kv = rows => `<dl class="kv">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl>`;
 
 function renderResult(shared) {
-  const S = summary({ r: role, a: ans });
+  const S = summary({ r: role, a: ans, s: Object.keys(star) });
   app.replaceChildren(el(`
     <section class="stack-lg fade">
       <div class="page stack-lg">
@@ -570,25 +670,29 @@ function renderResult(shared) {
           <span class="eyebrow">${shared ? "Ответы партнёра" : "Твои ответы"} · ${role === "m" ? "парень" : "девушка"}</span>
           <div class="arch">Мы вдвоём</div>
           ${S.rate ? `<p><span class="score">${S.rate}/10</span><br><span class="note">насколько сейчас хорошо в сексе</span></p>` : ""}
+          ${S.skipped.length ? `<p class="note">Пропущенные блоки: ${S.skipped.join(", ")}</p>` : ""}
         </div>
-        <div class="callout"><span class="eyebrow">Ритм</span>
-          <dl class="kv"><dt>Хочется</dt><dd>${esc(S.want)}</dd><dt>Получается</dt><dd>${esc(S.real)}</dd>
-          <dt>Когда</dt><dd>${esc(S.when.join(", ") || "—")}</dd><dt>По времени</dt><dd>${esc(S.long)}</dd><dt>Прелюдия</dt><dd>${esc(S.fore)}</dd></dl></div>
-        <div class="callout"><span class="eyebrow">Кто начинает</span>
-          <dl class="kv"><dt>Сейчас</dt><dd>${esc(S.initNow)}</dd><dt>Хотелось бы</dt><dd>${esc(S.initWant)}</dd>
-          <dt>«Не сегодня»</dt><dd>${esc(S.noHow)}</dd><dt>Когда отказали</dt><dd>${esc(S.noFeel)}</dd></dl>
+        <div class="callout"><span class="eyebrow">Ритм</span>${kv([["Хочется", S.want], ["Получается", S.real], ["Когда", S.when.join(", ") || "—"], ["По времени", S.long], ["Прелюдия", S.fore]])}</div>
+        <div class="callout"><span class="eyebrow">Кто начинает</span>${kv([["Сейчас", S.initNow], ["Хотелось бы", S.initWant], ["«Не сегодня»", S.noHow], ["Когда отказали", S.noFeel], ["Говорить о сексе", S.talkEase]])}
           <p class="lead" style="font-size:15px">Нравится, когда начинают:</p>${chips(S.initHow)}</div>
+        <div class="callout"><span class="eyebrow">Оргазм и позы</span>${kv([["Оргазм бывает", S.orgFreq], ["Кончать вместе", S.orgTogether]])}
+          <p class="lead" style="font-size:15px">Помогает:</p>${chips(S.orgHelp)}<p class="lead" style="font-size:15px">Любимые позы:</p>${chips(S.poses)}</div>
       </div>
       <div class="page stack-lg">
         <div class="stack"><span class="eyebrow">Это или то</span>${chips(S.picks)}</div>
+        ${S.domRole !== "—" ? `<div class="callout"><span class="eyebrow">Власть</span>${kv([["Ближе", S.domRole]])}</div>` : ""}
+        ${S.analExp !== "—" ? `<div class="callout"><span class="eyebrow">Анал</span>${kv([["Опыт", S.analExp]])}</div>` : ""}
         <div class="stack"><span class="eyebrow">Очень хочется</span>${chips(S.yes)}</div>
         <div class="stack"><span class="eyebrow">Интересно</span>${chips(S.like)}</div>
+        ${S.stars.length ? `<div class="stack"><span class="eyebrow">★ Стесняюсь предложить</span>${chips(S.stars, "star-chip")}</div>` : ""}
         <div class="stack"><span class="eyebrow">Не хочется</span>${chips(S.no)}</div>
-        <div class="stack"><span class="eyebrow">После</span>${chips(S.after)}</div>
-        ${S.best ? `<div class="callout"><span class="eyebrow">Больше всего нравится</span><p style="font-family:var(--display);font-style:italic;font-size:22px">«${esc(S.best)}»</p></div>` : ""}
-        ${S.more ? `<div class="callout"><span class="eyebrow">Хотелось бы больше</span><p style="font-family:var(--display);font-style:italic;font-size:22px">«${esc(S.more)}»</p></div>` : ""}
       </div>
-
+      <div class="page stack-lg">
+        <div class="stack"><span class="eyebrow">После</span>${chips(S.after)}</div>
+        ${S.best ? `<div class="callout"><span class="eyebrow">Больше всего нравится</span><p class="quote">«${esc(S.best)}»</p></div>` : ""}
+        ${S.more ? `<div class="callout"><span class="eyebrow">Хотелось бы больше</span><p class="quote">«${esc(S.more)}»</p></div>` : ""}
+        ${S.secret ? `<div class="callout"><span class="eyebrow">Фантазия</span><p class="quote">«${esc(S.secret)}»</p></div>` : ""}
+      </div>
       <div class="callout">
         <span class="eyebrow">${shared ? "Сравнить" : "Поделиться"}</span>
         <h3>${shared ? "Вставь свою ссылку, чтобы увидеть совпадения" : "Отправь ссылку партнёру и вставь его ссылку ниже"}</h3>
@@ -599,10 +703,11 @@ function renderResult(shared) {
         <input id="other" class="cmp-input" placeholder="${shared ? "Вставь сюда свою ссылку" : "Вставь сюда ссылку партнёра"}">
         <div class="row"><button class="btn" id="cmp">Сравнить</button></div>
       </div>
+      <p class="note">По твоей ссылке партнёр не увидит твоих ответов, только сравнение: где вы совпали, и ваши ответы в открытых вопросах.</p>
       ${shared ? `<div class="row"><a class="btn-ghost" href="${location.pathname}" style="text-decoration:none">Пройти тест</a></div>` : `<div class="row"><button class="btn-ghost" id="again">Пройти заново</button></div>`}
     </section>`));
   const say = t => { const m = document.getElementById("msg"); m.textContent = t; m.hidden = false; };
-  const mine = { r: role, a: ans };
+  const mine = { r: role, a: ans, s: Object.keys(star) };
   const lb = document.getElementById("link");
   if (lb) lb.onclick = async () => {
     const url = myLink(), f = document.getElementById("linkField"); f.value = url; f.hidden = false;
@@ -614,41 +719,78 @@ function renderResult(shared) {
     if (!other) { say("Это не похоже на ссылку из теста. Скопируй её целиком, вместе с #r="); return; }
     renderCompare(mine, other);
   };
-  const ag = document.getElementById("again"); if (ag) ag.onclick = () => { ans = {}; role = null; idx = -1; history.replaceState(null, "", location.pathname); renderIntro(); };
+  const ag = document.getElementById("again"); if (ag) ag.onclick = () => { ans = {}; star = {}; role = null; idx = -1; history.replaceState(null, "", location.pathname); renderIntro(); };
   window.scrollTo(0, 0);
 }
 
+function renderShared(other) {
+  app.replaceChildren(el(`
+    <section class="stack-lg fade">
+      <div class="hero-card stack">
+        ${art("words", "arch-art")}
+        <span class="eyebrow">Партнёр прошёл тест</span>
+        <div class="arch">Мы вдвоём</div>
+        <p>Ответы партнёра здесь не показываются. Видно будет только сравнение: где вы совпали.</p>
+      </div>
+      <div class="callout">
+        <h3>Уже прошёл тест? Вставь свою ссылку</h3>
+        <input id="other" class="cmp-input" placeholder="Вставь сюда свою ссылку">
+        <div class="row"><button class="btn" id="cmp">Сравнить</button></div>
+        <span class="copied" id="msg" hidden></span>
+      </div>
+      <div class="stack"><h3>Ещё не проходил?</h3>
+        <p class="note">Пройди тест, в конце скопируй свою ссылку и вставь её сюда или отправь партнёру.</p>
+        <div class="row"><a class="btn-ghost" href="${location.pathname}" style="text-decoration:none">Пройти тест</a></div></div>
+    </section>`));
+  document.getElementById("cmp").onclick = () => {
+    const mine = parseLink(document.getElementById("other").value);
+    if (!mine) { const m = document.getElementById("msg"); m.textContent = "Это не похоже на ссылку из теста. Скопируй её целиком, вместе с #r="; m.hidden = false; return; }
+    renderCompare(mine, other, () => renderShared(other));
+  };
+}
+
 // ---------- сравнение ----------
-function renderCompare(x, y) {
-  // она слева, он справа; если роли совпали — просто «первый» и «второй»
+function renderCompare(x, y, onBack) {
   let A = x, B = y;
   if (x.r === "m" && y.r === "f") { A = y; B = x; }
-  const la = A.r === "f" && B.r === "m" ? "Она" : "Первый", lbn = A.r === "f" && B.r === "m" ? "Он" : "Второй";
-  const SA = summary(A), SB = summary(B);
+  const pair = A.r === "f" && B.r === "m";
+  const la = pair ? "Она" : "Первый", lb = pair ? "Он" : "Второй";
   const DAT = { "Она": "Ей", "Он": "Ему", "Первый": "Первому", "Второй": "Второму" };
-  const scale = Q.filter(q => q.type === "scale");
+  const SA = summary(A), SB = summary(B);
+  // пары «дать / получить»: её «дать» сравниваем с его «получить»
+  const CROSS = { oralGet: "oralGive", oralGive: "oralGet", masturbShow: "masturbWatch", masturbWatch: "masturbShow" };
+  const CROSS_NAME = pair ? { oralGet: "Оральные ласки ей", oralGive: "Оральные ласки ему", masturbShow: "Она ласкает себя при нём", masturbWatch: "Он ласкает себя при ней" }
+                          : { oralGet: `Оральные ласки: ${la.toLowerCase()} получает`, oralGive: `Оральные ласки: ${lb.toLowerCase()} получает`, masturbShow: `${la} ласкает себя`, masturbWatch: `${lb} ласкает себя` };
+  const bid = id => CROSS[id] || id;
+  const sa = new Set(A.s || []), sb = new Set(B.s || []);
+  const P = q => ({ a: A.a[q.id], b: B.a[bid(q.id)], sa: sa.has(q.id), sb: sb.has(bid(q.id)) });
   const va = id => A.a[id], vb = id => B.a[id];
-  const bothVery = scale.filter(q => va(q.id) === 4 && vb(q.id) === 4).map(q => q.short);
-  const both = scale.filter(q => va(q.id) >= 3 && vb(q.id) >= 3 && !(va(q.id) === 4 && vb(q.id) === 4)).map(q => q.short);
-  const talk = scale.filter(q => (va(q.id) >= 3 && vb(q.id) === 2) || (vb(q.id) >= 3 && va(q.id) === 2)).map(q => q.short);
-  const bothNo = scale.filter(q => va(q.id) <= 1 && vb(q.id) <= 1 && va(q.id) !== undefined && vb(q.id) !== undefined).map(q => q.short);
-  const hidden = scale.filter(q => (va(q.id) >= 3 && vb(q.id) <= 1) || (vb(q.id) >= 3 && va(q.id) <= 1)).length;
+  const answered = q => P(q).a !== undefined && P(q).b !== undefined;
+  const name = q => CROSS_NAME[q.id] || q.short;
+  const bothVery = SCALEQ.filter(q => answered(q) && P(q).a === 4 && P(q).b === 4);
+  const both = SCALEQ.filter(q => answered(q) && P(q).a >= 3 && P(q).b >= 3 && !(P(q).a === 4 && P(q).b === 4));
+  const talk = SCALEQ.filter(q => answered(q) && ((P(q).a >= 3 && P(q).b === 2) || (P(q).b >= 3 && P(q).a === 2)));
+  const bothNo = SCALEQ.filter(q => answered(q) && P(q).a <= 1 && P(q).b <= 1);
+  const hidden = SCALEQ.filter(q => answered(q) && ((P(q).a >= 3 && P(q).b <= 1) || (P(q).b >= 3 && P(q).a <= 1))).length;
+  const shyBoth = SCALEQ.filter(q => answered(q) && P(q).sa && P(q).sb && P(q).a >= 2 && P(q).b >= 2);
+  const shyOne = SCALEQ.filter(q => answered(q) && (P(q).sa || P(q).sb) && !(P(q).sa && P(q).sb) && P(q).a >= 3 && P(q).b >= 3);
+  const bySec = list => { const m = new Map(); list.forEach(q => { const k = q.sec.replace(/:.*$/, ""); if (!m.has(k)) m.set(k, []); m.get(k).push(name(q)); }); return m; };
+  const secBlocks = list => [...bySec(list)].map(([k, v]) => `<div class="stack" style="gap:6px"><span class="step-of">${esc(k)}</span>${chips(v)}</div>`).join("");
   const row = (title, a, b) => `<div class="stack" style="gap:6px"><span class="eyebrow">${title}</span>
-    <div class="vs"><div><span class="who">${la}</span>${esc(a)}</div><div class="b"><span class="who">${lbn}</span>${esc(b)}</div></div>
+    <div class="vs"><div><span class="who">${la}</span>${esc(a)}</div><div class="b"><span class="who">${lb}</span>${esc(b)}</div></div>
     ${a === b && a !== "—" ? `<span class="same">Совпало</span>` : ""}</div>`;
-  const inter = id => { const s = new Set(A.a[id] || []); return (B.a[id] || []).filter(i => s.has(i)); };
-  const QQ = id => Q.find(q => q.id === id);
-  const prev = role; role = "f";
-  const interTxt = id => inter(id).map(i => optText(QQ(id), i));
-  role = prev;
-  // кто кого ждёт: переводим «мне / партнёр» в «она / он»
+  const inter = id => { const st = new Set(A.a[id] || []); return withRole("f", () => (B.a[id] || []).filter(i => st.has(i)).map(i => optText(QQ(id), i))); };
   const absNow = (i, me, oth) => i === undefined ? "—" : ["Чаще " + me.toLowerCase(), "Чаще " + oth.toLowerCase(), "Поровну"][i];
   const starts = who => (who === "Она" ? "Чтобы чаще начинала " : "Чтобы чаще начинал ") + who.toLowerCase();
   const absWant = (i, me, oth) => i === undefined ? "—" : [starts(me), starts(oth), "Поровну", "Без разницы"][i];
   const wantGap = (A.a.want ?? 9) - (B.a.want ?? 9);
-  const picksSame = Q.filter(q => q.type === "pick" && A.a[q.id] !== undefined && A.a[q.id] === B.a[q.id]).map(q => { role = A.r; const t = optText(q, A.a[q.id]); role = prev; return t; });
-  const picksDiff = Q.filter(q => q.type === "pick" && A.a[q.id] !== undefined && B.a[q.id] !== undefined && A.a[q.id] !== B.a[q.id]).map(q => {
-    role = A.r; const ta = optText(q, A.a[q.id]); role = B.r; const tb = optText(q, B.a[q.id]); role = prev; return `${q.text} ${la}: ${ta.toLowerCase()}, ${lbn.toLowerCase()}: ${tb.toLowerCase()}`; });
+  const picksSame = Q.filter(q => q.type === "pick" && va(q.id) !== undefined && va(q.id) === vb(q.id)).map(q => withRole(A.r, () => optText(q, va(q.id))));
+  const domA = A.a.domRole, domB = B.a.domRole;
+  const domFit = domA === undefined || domB === undefined ? "" :
+    (domA === 0 && domB === 1) || (domA === 1 && domB === 0) ? "Идеально дополняете друг друга: один ведёт, другой подчиняется." :
+    domA === 2 || domB === 2 ? "Можно по очереди: кто-то из вас готов в обе роли." :
+    domA === domB && domA < 2 ? "Оба хотите одну и ту же роль. Стоит договориться, кто когда." : "Кто-то пока не знает. Можно начать с лёгкого и посмотреть.";
+  const analA = A.a.analExp, analB = B.a.analExp;
 
   app.replaceChildren(el(`
     <section class="stack-lg fade">
@@ -657,36 +799,46 @@ function renderCompare(x, y) {
           ${art("words", "arch-art")}
           <span class="eyebrow">Сравнение</span>
           <div class="arch">Где вы совпали</div>
-          <p>Совпадений «оба очень хотят»: <b>${bothVery.length}</b>, «оба за»: <b>${bothVery.length + both.length}</b>.</p>
-          ${SA.rate && SB.rate ? `<div class="vs"><div><span class="who">${la}</span><span class="score">${SA.rate}</span>/10</div><div class="b"><span class="who">${lbn}</span><span class="score" style="color:var(--him)">${SB.rate}</span>/10</div></div>` : ""}
+          <p>«Оба очень хотят»: <b>${bothVery.length}</b>. «Оба за»: <b>${bothVery.length + both.length}</b>.</p>
+          ${SA.rate && SB.rate ? `<div class="vs"><div><span class="who">${la}</span><span class="score">${SA.rate}</span>/10</div><div class="b"><span class="who">${lb}</span><span class="score" style="color:var(--him)">${SB.rate}</span>/10</div></div>` : ""}
         </div>
         ${row("Как часто хочется", SA.want, SB.want)}
-        ${wantGap !== 0 && !isNaN(wantGap) && Math.abs(wantGap) < 9 ? `<p class="first"><b>Разница в желании.</b> ${DAT[wantGap > 0 ? lbn : la]} хочется чаще. Это нормально, главное — договориться о ритме, который подходит обоим.</p>` : ""}
+        ${wantGap !== 0 && Math.abs(wantGap) < 9 ? `<p class="first"><b>Разница в желании.</b> ${DAT[wantGap > 0 ? lb : la]} хочется чаще. Это нормально, главное — найти ритм, который подходит обоим.</p>` : ""}
         ${row("Как часто получается", SA.real, SB.real)}
         ${row("По времени", SA.long, SB.long)}
         ${row("Прелюдия", SA.fore, SB.fore)}
-        ${interTxt("when").length ? `<div class="stack"><span class="eyebrow">Обоим хочется в это время</span>${chips(interTxt("when"))}</div>` : ""}
+        ${inter("when").length ? `<div class="stack"><span class="eyebrow">Обоим хочется в это время</span>${chips(inter("when"))}</div>` : ""}
       </div>
       <div class="page stack-lg">
-        ${row("Кто чаще начинает сейчас (по мнению каждого)", absNow(A.a.initNow, la, lbn), absNow(B.a.initNow, lbn, la))}
-        ${row("Как хотелось бы", absWant(A.a.initWant, la, lbn), absWant(B.a.initWant, lbn, la))}
-        ${interTxt("initHow").length ? `<div class="stack"><span class="eyebrow">Обоим нравится, когда начинают</span>${chips(interTxt("initHow"))}</div>` : ""}
+        ${row("Кто чаще начинает сейчас (по мнению каждого)", absNow(va("initNow"), la, lb), absNow(vb("initNow"), lb, la))}
+        ${row("Как хотелось бы", absWant(va("initWant"), la, lb), absWant(vb("initWant"), lb, la))}
+        ${inter("initHow").length ? `<div class="stack"><span class="eyebrow">Обоим нравится, когда начинают</span>${chips(inter("initHow"))}</div>` : ""}
         ${row("Как проще сказать «не сегодня»", SA.noHow, SB.noHow)}
         ${row("Когда отказали", SA.noFeel, SB.noFeel)}
+        ${row("Говорить о сексе", SA.talkEase, SB.talkEase)}
+        ${row("Оргазм бывает", SA.orgFreq, SB.orgFreq)}
+        ${inter("orgHelp").length ? `<div class="stack"><span class="eyebrow">Обоим помогает кончить</span>${chips(inter("orgHelp"))}</div>` : ""}
+        ${inter("poses").length ? `<div class="stack"><span class="eyebrow">Общие любимые позы</span>${chips(inter("poses"))}</div>` : ""}
         ${picksSame.length ? `<div class="stack"><span class="eyebrow">Одинаково выбрали</span>${chips(picksSame)}</div>` : ""}
-        ${picksDiff.length ? `<div class="stack"><span class="eyebrow">Разное, но не страшно</span><ul class="sec-list" style="margin:0;padding-left:18px">${picksDiff.map(t => `<li>${esc(t)}</li>`).join("")}</ul></div>` : ""}
       </div>
       <div class="page stack-lg">
-        <div class="callout"><span class="eyebrow">Оба очень хотят</span><h3>Это точно стоит попробовать</h3>${chips(bothVery)}</div>
-        <div class="stack"><span class="eyebrow">Оба за</span>${chips(both)}</div>
-        ${talk.length ? `<div class="stack"><span class="eyebrow">Можно обсудить</span><p class="note">Одному хочется, второй пока не знает</p>${chips(talk)}</div>` : ""}
-        ${bothNo.length ? `<div class="stack"><span class="eyebrow">Обоим не надо</span>${chips(bothNo)}</div>` : ""}
-        ${hidden ? `<p class="note">Ещё ${hidden} пункт(а) не совпали: одному хочется, второму нет. Их не показываем, чтобы никому не было неловко.</p>` : ""}
-        ${interTxt("after").length ? `<div class="stack"><span class="eyebrow">После обоим нравится</span>${chips(interTxt("after"))}</div>` : ""}
-        ${SA.best || SB.best ? `<div class="callout"><span class="eyebrow">Больше всего нравится</span>
-          ${SA.best ? `<p><b>${la}:</b> «${esc(SA.best)}»</p>` : ""}${SB.best ? `<p><b>${lbn}:</b> «${esc(SB.best)}»</p>` : ""}</div>` : ""}
-        ${SA.more || SB.more ? `<div class="callout"><span class="eyebrow">Хотелось бы больше</span>
-          ${SA.more ? `<p><b>${la}:</b> «${esc(SA.more)}»</p>` : ""}${SB.more ? `<p><b>${lbn}:</b> «${esc(SB.more)}»</p>` : ""}</div>` : ""}
+        <div class="callout"><span class="eyebrow">Оба очень хотят</span><h3>Это точно стоит попробовать</h3>${bothVery.length ? secBlocks(bothVery) : `<p class="note">пусто</p>`}</div>
+        ${shyBoth.length ? `<div class="callout"><span class="eyebrow">★ Вот это поворот</span><h3>Оба хотите и оба стеснялись предложить</h3>${chips(shyBoth.map(name), "star-chip")}</div>` : ""}
+        ${shyOne.length ? `<div class="callout"><span class="eyebrow">★ Можно смело</span><h3>Один стеснялся, а второй тоже за</h3>${chips(shyOne.map(name), "star-chip")}</div>` : ""}
+        <div class="stack"><span class="eyebrow">Оба за</span>${both.length ? secBlocks(both) : `<p class="note">пусто</p>`}</div>
+      </div>
+      <div class="page stack-lg">
+        ${domFit ? `<div class="callout roles">${art("crown", "q-art")}<span class="eyebrow">Власть</span>
+          <div class="vs"><div><span class="who">${la}</span>${esc(SA.domRole)}</div><div class="b"><span class="who">${lb}</span>${esc(SB.domRole)}</div></div><p class="first">${domFit}</p></div>` : ""}
+        ${analA !== undefined && analB !== undefined ? row("Анал: опыт", SA.analExp, SB.analExp) : ""}
+        ${talk.length ? `<div class="stack"><span class="eyebrow">Можно обсудить</span><p class="note">Одному хочется, второй пока не знает</p>${chips(talk.map(name))}</div>` : ""}
+        ${bothNo.length ? `<div class="stack"><span class="eyebrow">Обоим не надо</span>${chips(bothNo.map(name))}</div>` : ""}
+        ${hidden ? `<p class="note">Ещё ${hidden} пункт(ов) не совпали: одному хочется, второму нет. Их не показываем, чтобы никому не было неловко.</p>` : ""}
+        ${(SA.skipped.length || SB.skipped.length) ? `<p class="note">Пропущенные блоки: ${la.toLowerCase()} — ${SA.skipped.join(", ") || "нет"}, ${lb.toLowerCase()} — ${SB.skipped.join(", ") || "нет"}. Там сравнивать нечего.</p>` : ""}
+        ${inter("after").length ? `<div class="stack"><span class="eyebrow">После обоим нравится</span>${chips(inter("after"))}</div>` : ""}
+        ${SA.best || SB.best ? `<div class="callout"><span class="eyebrow">Больше всего нравится</span>${SA.best ? `<p><b>${la}:</b> «${esc(SA.best)}»</p>` : ""}${SB.best ? `<p><b>${lb}:</b> «${esc(SB.best)}»</p>` : ""}</div>` : ""}
+        ${SA.more || SB.more ? `<div class="callout"><span class="eyebrow">Хотелось бы больше</span>${SA.more ? `<p><b>${la}:</b> «${esc(SA.more)}»</p>` : ""}${SB.more ? `<p><b>${lb}:</b> «${esc(SB.more)}»</p>` : ""}</div>` : ""}
+        ${SA.secret || SB.secret ? `<div class="callout"><span class="eyebrow">Фантазии</span>${SA.secret ? `<p><b>${la}:</b> «${esc(SA.secret)}»</p>` : ""}${SB.secret ? `<p><b>${lb}:</b> «${esc(SB.secret)}»</p>` : ""}</div>` : ""}
       </div>
       <div class="callout">
         <div class="row"><button class="btn" id="imgs">Сделать картинки</button><button class="btn-ghost" id="backRes">Назад</button></div>
@@ -696,7 +848,7 @@ function renderCompare(x, y) {
     </section>`));
   const say = t => { const m = document.getElementById("msg"); m.textContent = t; m.hidden = false; };
   document.getElementById("imgs").onclick = () => makeImages(say, "sravnenie");
-  document.getElementById("backRes").onclick = () => { role = x.r; ans = x.a; renderResult(location.hash.startsWith("#r=")); };
+  document.getElementById("backRes").onclick = onBack || (() => { role = x.r; ans = x.a; star = Object.fromEntries((x.s || []).map(k => [k, true])); renderResult(); });
   window.scrollTo(0, 0);
 }
 
@@ -731,7 +883,7 @@ async function makeImages(say, base) {
 
 // ---------- старт ----------
 const opened = parseLink(location.href);
-if (opened) { role = opened.r; ans = opened.a; renderResult(true); } else renderIntro();
+if (opened) renderShared(opened); else renderIntro();
 </script>
 </body>
 </html>
